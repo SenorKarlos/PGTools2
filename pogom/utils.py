@@ -550,6 +550,11 @@ def get_args():
                         help='Directory pointing to optional PogoAssets root directory.')
     parser.set_defaults(DEBUG=False)
 
+    parser.add_argument('-exg', '--ex-gyms',
+                        help = ('Fetch OSM parks within geofence and ' +
+                                'mark gyms that are in sed areas'),
+                        action = 'store_true', default = False)
+
     args = parser.parse_args()
 
     if args.only_server:
