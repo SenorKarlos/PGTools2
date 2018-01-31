@@ -238,6 +238,16 @@
                 </label>
               </div>
             </div>
+            <div class="form-control switch-container">
+              <h3>Geofences</h3>
+              <div class="onoffswitch">
+                <input id="geofences-switch" type="checkbox" name="geofences-switch" class="onoffswitch-checkbox">
+                <label class="onoffswitch-label" for="geofences-switch">
+                <span class="switch-label" data-on="On" data-off="Off"></span>
+                <span class="switch-handle"></span>
+                </label>
+              </div>
+            </div>
               {% if show.pokemons %}
             <div class="form-control">
               <label for="exclude-pokemon">
@@ -526,6 +536,7 @@
     <script src="https://cdn.datatables.net/1.10.12/js/jquery.dataTables.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment-with-locales.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/push.js/1.0.4/push.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/randomcolor/0.4.4/randomColor.min.js"></script>
     <script src="{{ url_for('static', filename='dist/js/vendor/markerclusterer.min.js').lstrip('/') }}"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
