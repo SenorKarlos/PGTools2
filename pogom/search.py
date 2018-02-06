@@ -41,6 +41,7 @@ from distutils.version import StrictVersion
 from cachetools import TTLCache
 
 from pgoapi.hash_server import HashServer
+from pgoapi.exceptions import AuthException
 from .models import (parse_map, GymDetails, parse_gyms, MainWorker,
                      WorkerStatus, HashKeys, ScannedLocation)
 from .utils import now, distance, get_args, clear_dict_response
@@ -1359,6 +1360,16 @@ def search_worker_thread(args, account_queue, account_sets, account_failures,
                 time.sleep(delay)
 
         # Catch any process exceptions, log them, and continue the thread.
+        except AuthException as e:
+            log.error(u"[{}] Problem to login. {}".format(account['username'], repr(e)))
+            status['active'] = False
+            status['message'] = (
+                'Account {} has problem to login. Switching accounts...').format(
+                    account['username'])
+            if 'pgacc' in account:
+                account['pgacc']._player_state['banned'] = True
+            account_failed(args, account_failures, account, repr(e))
+            time.sleep(args.scan_delay)
         except Exception as e:
             log.exception(
                 'Exception in search_worker under account %s.',
