@@ -33,7 +33,8 @@ from .utils import (get_pokemon_name, get_pokemon_types,
 from .transform import transform_from_wgs_to_gcj, get_new_coords
 from .customLog import printPokemon
 
-from .account import pokestop_spinnable, spin_pokestop, incubate_eggs, setup_mrmime_account, \
+from .account import pokestop_spinnable, spin_pokestop, incubate_eggs, \
+    setup_mrmime_account, \
     encounter_pokemon_request, clear_pokemon
 from .proxy import get_new_proxy
 from pgoapi.protos.pogoprotos.map.weather.gameplay_weather_pb2 import *
@@ -46,11 +47,12 @@ args = get_args()
 flaskDb = FlaskDB()
 cache = TTLCache(maxsize=100, ttl=60 * 5)
 
-db_schema_version = 26
+db_schema_version = 27
 
 
 class MyRetryDB(RetryOperationalError, PooledMySQLDatabase):
     pass
+
 
 # Reduction of CharField to fit max length inside 767 bytes for utf8mb4 charset
 class Utf8mb4CharField(CharField):
@@ -58,8 +60,10 @@ class Utf8mb4CharField(CharField):
         self.max_length = max_length
         super(CharField, self).__init__(*args, **kwargs)
 
+
 class UBigIntegerField(BigIntegerField):
     db_field = 'bigint unsigned'
+
 
 def init_database(app):
     log.info('Connecting to MySQL database on %s:%i...',
@@ -83,7 +87,6 @@ def init_database(app):
 
 
 class BaseModel(flaskDb.Model):
-
     @classmethod
     def database(cls):
         return cls._meta.database
@@ -94,7 +97,6 @@ class BaseModel(flaskDb.Model):
 
 
 class LatLongModel(BaseModel):
-
     @classmethod
     def get_all(cls):
         results = [m for m in cls.select().dicts()]
@@ -217,15 +219,15 @@ class Pokemon(LatLongModel):
         # and should use the disappear_time index and hopefully
         # improve performance
         pokemon_count_query = (Pokemon
-                               .select((Pokemon.pokemon_id+0).alias(
-                                           'pokemon_id'),
-                                       fn.COUNT((Pokemon.pokemon_id+0)).alias(
-                                           'count'),
-                                       fn.MAX(Pokemon.disappear_time).alias(
-                                           'lastappeared')
-                                       )
+                               .select((Pokemon.pokemon_id + 0).alias(
+            'pokemon_id'),
+            fn.COUNT((Pokemon.pokemon_id + 0)).alias(
+                'count'),
+            fn.MAX(Pokemon.disappear_time).alias(
+                'lastappeared')
+        )
                                .where(Pokemon.disappear_time > timediff)
-                               .group_by((Pokemon.pokemon_id+0))
+                               .group_by((Pokemon.pokemon_id + 0))
                                .alias('counttable')
                                )
         query = (Pokemon
@@ -354,7 +356,7 @@ class Pokestop(LatLongModel):
                               (Pokestop.longitude >= oSwLng) &
                               (Pokestop.latitude <= oNeLat) &
                               (Pokestop.longitude <= oNeLng)) &
-                             (Pokestop.active_fort_modifier.is_null(False)))
+                            (Pokestop.active_fort_modifier.is_null(False)))
                      .dicts())
         elif oSwLat and oSwLng and oNeLat and oNeLng:
             # Send stops in view but exclude those within old boundaries. Only
@@ -411,6 +413,7 @@ class Gym(LatLongModel):
     guard_pokemon_id = SmallIntegerField()
     slots_available = SmallIntegerField()
     enabled = BooleanField()
+    park = BooleanField(default=False)
     latitude = DoubleField()
     longitude = DoubleField()
     total_cp = SmallIntegerField()
@@ -484,19 +487,19 @@ class Gym(LatLongModel):
         if len(gym_ids) > 0:
             pokemon = (GymMember
                        .select(
-                           GymMember.gym_id,
-                           GymPokemon.cp.alias('pokemon_cp'),
-                           GymMember.cp_decayed,
-                           GymMember.deployment_time,
-                           GymMember.last_scanned,
-                           GymPokemon.pokemon_id,
-                           GymPokemon.gender,
-                           GymPokemon.form,
-                           GymPokemon.costume,
-                           GymPokemon.weather_boosted_condition,
-                           GymPokemon.shiny,
-                           Trainer.name.alias('trainer_name'),
-                           Trainer.level.alias('trainer_level'))
+                GymMember.gym_id,
+                GymPokemon.cp.alias('pokemon_cp'),
+                GymMember.cp_decayed,
+                GymMember.deployment_time,
+                GymMember.last_scanned,
+                GymPokemon.pokemon_id,
+                GymPokemon.gender,
+                GymPokemon.form,
+                GymPokemon.costume,
+                GymPokemon.weather_boosted_condition,
+                GymPokemon.shiny,
+                Trainer.name.alias('trainer_name'),
+                Trainer.level.alias('trainer_level'))
                        .join(Gym, on=(GymMember.gym_id == Gym.gym_id))
                        .join(GymPokemon, on=(GymMember.pokemon_uid ==
                                              GymPokemon.pokemon_uid))
@@ -513,8 +516,8 @@ class Gym(LatLongModel):
 
             details = (GymDetails
                        .select(
-                           GymDetails.gym_id,
-                           GymDetails.name)
+                GymDetails.gym_id,
+                GymDetails.name)
                        .where(GymDetails.gym_id << gym_ids)
                        .dicts())
 
@@ -553,6 +556,7 @@ class Gym(LatLongModel):
                               Gym.weather_boosted_condition,
                               Gym.shiny,
                               Gym.slots_available,
+                              Gym.park,
                               Gym.latitude,
                               Gym.longitude,
                               Gym.last_modified,
@@ -625,6 +629,10 @@ class Gym(LatLongModel):
             pass
 
         return result
+
+    @staticmethod
+    def is_gym_park(id, park):
+        Gym.update(park=park).where(Gym.gym_id == str(id)).execute()
 
 
 class Raid(BaseModel):
@@ -867,7 +875,8 @@ class ScannedLocation(LatLongModel):
             deg_at_lat = 0.0007 / math.cos(math.radians(scan['loc'][0]))
             for sp in spawn_points:
                 if (abs(sp['latitude'] - scan['loc'][0]) > 0.0008 or
-                        abs(sp['longitude'] - scan['loc'][1]) > deg_at_lat):
+                            abs(sp['longitude'] - scan['loc'][
+                                1]) > deg_at_lat):
                     continue
                 if in_radius((sp['latitude'], sp['longitude']),
                              scan['loc'], distance * 1000):
@@ -876,6 +885,7 @@ class ScannedLocation(LatLongModel):
                         'scannedlocation': cell}
                     index += 1
         return scan_spawn_point
+
     # Return list of dicts for upcoming valid band times.
     @staticmethod
     def linked_spawn_points(cell):
@@ -906,17 +916,18 @@ class ScannedLocation(LatLongModel):
             ScanSpawnPoint.select(
                 ScanSpawnPoint.spawnpoint,
                 fn.MAX(ScanSpawnPoint.scannedlocation).alias('cellid'))
-            .join(
+                .join(
                 sp_from_cells,
                 on=sp_from_cells.c.spawnpoint_id == ScanSpawnPoint.spawnpoint)
-            .join(
+                .join(
                 ScannedLocation,
                 on=(ScannedLocation.cellid == ScanSpawnPoint.scannedlocation))
-            .where(((ScannedLocation.last_modified >= (location_change_date)) &
-                    (ScannedLocation.last_modified >
-                     (datetime.utcnow() - timedelta(minutes=60)))) | (
-                         ScannedLocation.cellid << cellids))
-            .group_by(ScanSpawnPoint.spawnpoint).alias('maxscan'))
+                .where(
+                ((ScannedLocation.last_modified >= (location_change_date)) &
+                 (ScannedLocation.last_modified >
+                  (datetime.utcnow() - timedelta(minutes=60)))) | (
+                    ScannedLocation.cellid << cellids))
+                .group_by(ScanSpawnPoint.spawnpoint).alias('maxscan'))
         # As scan locations overlap,spawnpoints can belong to up to 3 locations
         # This sub-query effectively assigns each SP to exactly one location.
         ret = {}
@@ -1018,9 +1029,9 @@ class ScannedLocation(LatLongModel):
                         case(ScannedLocation.band1, ((-1, 0),), 1) +
                         case(ScannedLocation.band2, ((-1, 0),), 1) + case(
                             ScannedLocation.band3, ((-1, 0),), 1) + case(
-                                ScannedLocation.band4, ((-1, 0),), 1) + case(
-                                    ScannedLocation.band5, ((-1, 0),), 1))
-                    .alias('band_count'))
+                            ScannedLocation.band4, ((-1, 0),), 1) + case(
+                            ScannedLocation.band5, ((-1, 0),), 1))
+                        .alias('band_count'))
                 .where(ScannedLocation.cellid << cellids).scalar() or 0)
         return result
 
@@ -1151,7 +1162,9 @@ class WorkerStatus(LatLongModel):
             else:
                 log.error("Area {} not found.".format(worker_name))
         except Exception as e:
-            log.error("Could not determine center of area {}: {}".format(worker_name, repr(e)))
+            log.error(
+                "Could not determine center of area {}: {}".format(worker_name,
+                                                                   repr(e)))
 
         return None
 
@@ -1276,7 +1289,6 @@ class SpawnPoint(LatLongModel):
 
         return list(spawnpoints.values())
 
-   
     # Confirm if tth has been found.
     @staticmethod
     def tth_found(sp):
@@ -1383,15 +1395,16 @@ class SpawnPoint(LatLongModel):
                                fn.MAX(ScanSpawnPoint.scannedlocation).alias(
                                    'Max_ScannedLocation_id'))
                        .join(sp_from_cells, on=sp_from_cells.c.spawnpoint_id
-                             == ScanSpawnPoint.spawnpoint)
+                                               == ScanSpawnPoint.spawnpoint)
                        .join(
-                           ScannedLocation,
-                           on=(ScannedLocation.cellid
-                               == ScanSpawnPoint.scannedlocation))
+            ScannedLocation,
+            on=(ScannedLocation.cellid
+                == ScanSpawnPoint.scannedlocation))
                        .where(((ScannedLocation.last_modified
                                 >= (location_change_date)) & (
-                           ScannedLocation.last_modified > (
-                               datetime.utcnow() - timedelta(minutes=60)))) |
+                                   ScannedLocation.last_modified > (
+                                       datetime.utcnow() - timedelta(
+                                           minutes=60)))) |
                               (ScannedLocation.cellid << cellids))
                        .group_by(ScanSpawnPoint.spawnpoint)
                        .alias('maxscan'))
@@ -1475,8 +1488,8 @@ class SpawnpointDetectionData(BaseModel):
         with SpawnpointDetectionData.database().execution_context():
             query = list(
                 SpawnpointDetectionData.select()
-                .where(SpawnpointDetectionData.spawnpoint_id == sp['id'])
-                .order_by(SpawnpointDetectionData.scan_time.asc()).dicts())
+                    .where(SpawnpointDetectionData.spawnpoint_id == sp['id'])
+                    .order_by(SpawnpointDetectionData.scan_time.asc()).dicts())
 
         if sighting:
             query.append(sighting)
@@ -1545,7 +1558,7 @@ class SpawnpointDetectionData(BaseModel):
         if sp['kind'] != 'ssss':
 
             if (not sp['earliest_unseen'] or
-                    sp['earliest_unseen'] != sp['latest_seen'] or
+                        sp['earliest_unseen'] != sp['latest_seen'] or
                     not tth_found):
 
                 # New latest_seen will be just before max_gap.
@@ -1577,9 +1590,9 @@ class SpawnpointDetectionData(BaseModel):
 
         sight_list = [{'date': query[i]['scan_time'],
                        'delta': query[i + 1]['scan_time'] -
-                       query[i]['scan_time'],
+                                query[i]['scan_time'],
                        'same': query[i + 1]['encounter_id'] ==
-                       query[i]['encounter_id']
+                               query[i]['encounter_id']
                        }
                       for i in range(len(query) - 1)
                       if query[i + 1]['scan_time'] - query[i]['scan_time'] <
@@ -1613,10 +1626,10 @@ class SpawnpointDetectionData(BaseModel):
                 # with any of them.
                 for u in union:
                     if clock_between(u[0], start, u[1]):
-                        u[1] = end if not(clock_between(
+                        u[1] = end if not (clock_between(
                             u[0], end, u[1])) else u[1]
                     elif clock_between(u[0], end, u[1]):
-                        u[0] = start if not(clock_between(
+                        u[0] = start if not (clock_between(
                             u[0], start, u[1])) else u[0]
                     elif union.count([start, end]) == 0:
                         union.append([start, end])
@@ -1630,7 +1643,8 @@ class SpawnpointDetectionData(BaseModel):
         # If more than one disparate union, take the largest as our starting
         # point.
         union = reduce(lambda x, y: x if (x[1] - x[0]) % 3600 >
-                       (y[1] - y[0]) % 3600 else y, union, [0, 3600])
+                                         (y[1] - y[0]) % 3600 else y, union,
+                       [0, 3600])
         sp['latest_seen'] = union[1]
         sp['earliest_unseen'] = union[0]
         log.info('1x60: appear %d, despawn %d, duration: %d min.',
@@ -1761,8 +1775,8 @@ class Weather(BaseModel):
     severity = SmallIntegerField(null=True, index=True)
     warn_weather = SmallIntegerField(null=True, index=True)
     world_time = SmallIntegerField(null=True, index=True)
-    last_updated = DateTimeField(default=datetime.utcnow, null=True, index=True)
-
+    last_updated = DateTimeField(default=datetime.utcnow, null=True,
+                                 index=True)
 
     @staticmethod
     def get_weathers():
@@ -1782,16 +1796,18 @@ class Weather(BaseModel):
         lat_delta = 0.15
         lng_delta = 0.4
         if not alert:
-            query = Weather.select().where((Weather.latitude >= float(swLat) - lat_delta) &
-                                           (Weather.longitude >= float(swLng) - lng_delta) &
-                                           (Weather.latitude <= float(neLat) + lat_delta) &
-                                           (Weather.longitude <= float(neLng) + lng_delta)).dicts()
+            query = Weather.select().where(
+                (Weather.latitude >= float(swLat) - lat_delta) &
+                (Weather.longitude >= float(swLng) - lng_delta) &
+                (Weather.latitude <= float(neLat) + lat_delta) &
+                (Weather.longitude <= float(neLng) + lng_delta)).dicts()
         else:
-            query = Weather.select().where((Weather.latitude >= float(swLat) - lat_delta) &
-                                           (Weather.longitude >= float(swLng) - lng_delta) &
-                                           (Weather.latitude <= float(neLat) + lat_delta) &
-                                           (Weather.longitude <= float(neLng) + lng_delta) &
-                                           (Weather.severity.is_null(False))).dicts()
+            query = Weather.select().where(
+                (Weather.latitude >= float(swLat) - lat_delta) &
+                (Weather.longitude >= float(swLng) - lng_delta) &
+                (Weather.latitude <= float(neLat) + lat_delta) &
+                (Weather.longitude <= float(neLng) + lng_delta) &
+                (Weather.severity.is_null(False))).dicts()
         weathers = []
         for w in query:
             weathers.append(w)
@@ -1827,7 +1843,7 @@ class HashKeys(BaseModel):
         # Obfuscate hashing keys before we sent them to the front-end.
         hashkeys = HashKeys.get_all()
         for i, s in enumerate(hashkeys):
-            hashkeys[i]['key'] = s['key'][:-9] + '*'*9
+            hashkeys[i]['key'] = s['key'][:-9] + '*' * 9
         return hashkeys
 
     @staticmethod
@@ -1962,8 +1978,8 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
     if weather_alert:
         for w in weather_alert:
             log.info('Weather Alerts Active: %s, Severity Level: %s',
-                            w.warn_weather,
-                            WeatherAlert.Severity.Name(w.severity))
+                     w.warn_weather,
+                     WeatherAlert.Severity.Name(w.severity))
             severity = w.severity
             warn = w.warn_weather
 
@@ -1988,20 +2004,19 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
         }
         # Weather Information Log
         log.info('Weather Info: Cloud Level: %s, Rain Level: %s, ' +
-            'Wind Level: %s, Snow Level: %s, Fog Level: %s, ' +
-            'Wind Direction: %s Degreese.', display_weather.cloud_level,
-            display_weather.rain_level, display_weather.wind_level,
-            display_weather.snow_level, display_weather.fog_level,
-            display_weather.wind_direction)
+                 'Wind Level: %s, Snow Level: %s, Fog Level: %s, ' +
+                 'Wind Direction: %s Degreese.', display_weather.cloud_level,
+                 display_weather.rain_level, display_weather.wind_level,
+                 display_weather.snow_level, display_weather.fog_level,
+                 display_weather.wind_direction)
 
         log.info('GamePlay Conditions: %s - %s Bonus.',
-                    GetMapObjectsResponse.TimeOfDay.Name(worldtime),
-                    GameplayWeather.WeatherCondition.Name(gameplayweather))
+                 GetMapObjectsResponse.TimeOfDay.Name(worldtime),
+                 GameplayWeather.WeatherCondition.Name(gameplayweather))
 
     log.debug(weather)
     log.info('Upserted %d weather details.',
              len(weather))
-
 
     # If there are no wild or nearby Pokemon...
     if not wild_pokemon and not nearby_pokemon:
@@ -2078,7 +2093,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                     sp['latest_seen'] = d_t_secs
                     sp['earliest_unseen'] = d_t_secs
 
-            scan_spawn_points[len(scan_spawn_points)+1] = {
+            scan_spawn_points[len(scan_spawn_points) + 1] = {
                 'spawnpoint': sp['id'],
                 'scannedlocation': scan_location['cellid']}
             if not sp['last_scanned']:
@@ -2112,7 +2127,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
             start_end = SpawnPoint.start_end(sp, 1)
             seconds_until_despawn = (start_end[1] - now_secs) % 3600
             disappear_time = now_date + \
-                timedelta(seconds=seconds_until_despawn)
+                             timedelta(seconds=seconds_until_despawn)
 
             pokemon_id = p.pokemon_data.pokemon_id
 
@@ -2170,18 +2185,19 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                 'catch_prob_3': None,
                 'rating_attack': None,
                 'rating_defense': None,
-                'weather_boosted_condition' : None
+                'weather_boosted_condition': None
             }
 
             # Weather Pokemon Bonus
             weather_boosted_condition = p.pokemon_data.pokemon_display.weather_boosted_condition
             if weather_boosted_condition:
-                pokemon[p.encounter_id]['weather_boosted_condition'] = weather_boosted_condition
+                pokemon[p.encounter_id][
+                    'weather_boosted_condition'] = weather_boosted_condition
 
             # Check for Unown's alphabetic character.
             if pokemon_id == 201:
                 pokemon[p.encounter_id]['form'] = (p.pokemon_data
-                                                    .pokemon_display.form)
+                                                   .pokemon_display.form)
 
             # Updating Pokemon data from PGScout result
             if scout_result and scout_result['success']:
@@ -2218,7 +2234,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
 
             if 'pokemon' in args.wh_types:
                 if (not args.webhook_whitelist
-                        or pokemon_id in args.webhook_whitelist):
+                    or pokemon_id in args.webhook_whitelist):
 
                     wh_poke = pokemon[p.encounter_id].copy()
                     wh_poke.update({
@@ -2248,7 +2264,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                 with Pokemon.database().execution_context():
                     query = (Pokestop.select(
                         Pokestop.pokestop_id, Pokestop.last_modified).where(
-                            (Pokestop.pokestop_id << stop_ids)).dicts())
+                        (Pokestop.pokestop_id << stop_ids)).dicts())
                     encountered_pokestops = [(f['pokestop_id'], int(
                         (f['last_modified'] - datetime(1970, 1,
                                                        1)).total_seconds()))
@@ -2259,13 +2275,13 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                 if len(f.active_fort_modifier) > 0:
                     lure_expiration = (datetime.utcfromtimestamp(
                         f.last_modified_timestamp_ms / 1000.0) +
-                        timedelta(minutes=args.lure_duration))
+                                       timedelta(minutes=args.lure_duration))
                     active_fort_modifier = f.active_fort_modifier[0]
                 else:
                     lure_expiration, active_fort_modifier = None, None
 
                 if ((f.id, int(f.last_modified_timestamp_ms / 1000.0))
-                        in encountered_pokestops):
+                    in encountered_pokestops):
                     # If pokestop has been encountered before and hasn't
                     # changed don't process it.
                     stopsskipped += 1
@@ -2284,8 +2300,8 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
 
                 # Send all pokestops to webhooks.
                 if 'pokestop' in args.wh_types or (
-                        'lure' in args.wh_types and
-                        lure_expiration is not None):
+                            'lure' in args.wh_types and
+                            lure_expiration is not None):
                     l_e = None
                     if lure_expiration is not None:
                         l_e = calendar.timegm(lure_expiration.timetuple())
@@ -2303,6 +2319,13 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                 gym_display = f.gym_display
                 raid_info = f.raid_info
                 # Send gyms to webhooks.
+                with Gym.database().execution_context():
+                    Query = Gym.select().where(Gym.gym_id == f.id).dicts()
+                    park_id = None
+                    for gym in list(Query):
+                        park_id = gym['park']
+                    log.debug(park_id)
+
                 if 'gym' in args.wh_types:
                     raid_active_until = 0
                     raid_battle_ms = raid_info.raid_battle_ms
@@ -2323,6 +2346,8 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                             f.guard_pokemon_id,
                         'slots_available':
                             gym_display.slots_available,
+                        'park':
+                            park_id,
                         'total_cp':
                             gym_display.total_gym_cp,
                         'enabled':
@@ -2336,7 +2361,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                         'occupied_since':
                             calendar.timegm((datetime.utcnow() - timedelta(
                                 milliseconds=gym_display.occupied_millis)
-                                            ).timetuple()),
+                                             ).timetuple()),
                         'last_modified':
                             f.last_modified_timestamp_ms,
                         'raid_active_until':
@@ -2346,6 +2371,8 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                 gyms[f.id] = {
                     'gym_id':
                         f.id,
+                    'park':
+                        gym_id,
                     'team_id':
                         f.owned_by_team,
                     'guard_pokemon_id':
@@ -2381,6 +2408,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                     if f.HasField('raid_info'):
                         raids[f.id] = {
                             'gym_id': f.id,
+                            'park': park_id,
                             'level': raid_info.raid_level,
                             'spawn': datetime.utcfromtimestamp(
                                 raid_info.raid_spawn_ms / 1000.0),
@@ -2404,7 +2432,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                             })
 
                         if ('egg' in args.wh_types and
-                                raids[f.id]['pokemon_id'] is None) or (
+                                    raids[f.id]['pokemon_id'] is None) or (
                                     'raid' in args.wh_types and
                                     raids[f.id]['pokemon_id'] is not None):
                             wh_raid = raids[f.id].copy()
@@ -2449,7 +2477,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
     # can narrow down tth window.
     for sp in ScannedLocation.linked_spawn_points(scan_location['cellid']):
         if sp['missed_count'] > 5:
-                continue
+            continue
 
         if sp['id'] in sp_id_list:
             # Don't overwrite changes from this parse with DB version.
@@ -2475,8 +2503,8 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                          'spawnpoint.')
 
         if (not SpawnPoint.tth_found(sp) and scan_location['done'] and
-                (now_secs - sp['latest_seen'] -
-                 args.spawn_delay) % 3600 < 60):
+                        (now_secs - sp['latest_seen'] -
+                             args.spawn_delay) % 3600 < 60):
             log.warning('Spawnpoint %s was unable to locate a TTH, with '
                         'only %ss after Pokemon last seen.', sp['id'],
                         (now_secs - sp['latest_seen']) % 3600)
@@ -2485,7 +2513,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                 SpawnpointDetectionData.classify(sp, scan_location, now_secs)
             sp['latest_seen'] = (sp['latest_seen'] - 60) % 3600
             sp['earliest_unseen'] = (
-                sp['earliest_unseen'] + 14 * 60) % 3600
+                                        sp['earliest_unseen'] + 14 * 60) % 3600
             spawn_points[sp['id']] = sp
 
     db_update_queue.put((ScannedLocation, {0: scan_location}))
@@ -2576,7 +2604,7 @@ def encounter_pokemon(args, pokemon, account, pgacc, account_sets, status,
         # If the already existent API is using a proxy but
         # it's not alive anymore, we need to get a new proxy.
         elif (args.proxy and
-              (hlvl_pgacc.proxy_url not in args.proxy)):
+                  (hlvl_pgacc.proxy_url not in args.proxy)):
             proxy_idx, proxy_new = get_new_proxy(args)
             hlvl_pgacc.proxy_url = proxy_new
             hlvl_pgacc.rotate_proxy()
@@ -2623,7 +2651,7 @@ def encounter_pokemon(args, pokemon, account, pgacc, account_sets, status,
                           hlvl_account['username'])
 
             if ('ENCOUNTER' in enc_responses and
-                    enc_responses['ENCOUNTER'].status != 1):
+                        enc_responses['ENCOUNTER'].status != 1):
                 log.error('There was an error encountering Pokemon ID %s with '
                           + 'account %s: %d.', pokemon_id,
                           hlvl_account['username'],
@@ -2835,7 +2863,7 @@ def clean_db_loop(args):
                 # Remove active modifier from expired lured pokestops.
                 query = (Pokestop.update(
                     lure_expiration=None, active_fort_modifier=None).where(
-                        Pokestop.lure_expiration < datetime.utcnow()))
+                    Pokestop.lure_expiration < datetime.utcnow()))
                 query.execute()
 
                 # Remove old (unusable) captcha tokens
@@ -2898,7 +2926,8 @@ def bulk_upsert(cls, data, db):
 
                 # Use peewee's own implementation of the insert_many() method.
                 InsertQuery(cls, rows=data.values()[
-                            i:min(i + step, num_rows)]).upsert().execute()
+                                      i:min(i + step,
+                                            num_rows)]).upsert().execute()
 
                 db.execute_sql('SET FOREIGN_KEY_CHECKS=1;')
 
@@ -3094,11 +3123,9 @@ def database_migrate(db, old_ver):
         db.drop_tables([WorkerStatus])
 
     if old_ver < 11:
-
         db.drop_tables([ScanSpawnPoint])
 
     if old_ver < 13:
-
         db.drop_tables([WorkerStatus])
         db.drop_tables([MainWorker])
 
@@ -3370,6 +3397,11 @@ def database_migrate(db, old_ver):
         db.execute_sql('DROP TABLE `spawnpoint_old`;')
         db.execute_sql('DROP TABLE `gymmember_old`;')
         db.execute_sql('DROP TABLE `gympokemon_old`;')
+
+    if old_ver < 27:
+        migrate(
+            migrator.add_column('gym', 'park', BooleanField(default=False)))
+
     # Always log that we're done.
     log.info('Schema upgrade complete.')
     return True

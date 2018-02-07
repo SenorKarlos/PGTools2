@@ -28,6 +28,7 @@ from pogom.models import (init_database, create_tables, drop_tables,
                           verify_table_encoding, verify_database_schema)
 from pogom.webhook import wh_updater
 
+from pogom.osm import exgyms
 from pogom.proxy import initialize_proxies
 from pogom.search import search_overseer_thread
 from time import strftime
@@ -340,9 +341,17 @@ def main():
                               os.path.abspath(__file__)).decode('utf8'))
         app.before_request(app.validate_request)
         app.set_current_location(position)
-        
+
     db = startup_db(app, args.clear_db)
 
+    if args.ex_gyms:
+        if args.geofence_file == '':
+            log.critical('A geofence is required to find EX-gyms')
+            sys.exit(1)
+        else:
+            exgyms(args.geofence_file)
+            log.info('Finished checking gyms against OSM parks, exiting')
+            sys.exit(1)
 
     # Control the search status (running or not) across threads.
     control_flags = {
