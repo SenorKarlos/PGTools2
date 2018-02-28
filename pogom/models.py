@@ -2318,11 +2318,11 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                         'weather': current_weather,
                         'boosted_weather': weather_boosted_condition,
                         's2_cell_id': s2_cell_id,
-                        'base_catch': p.catch_prob_1,
-                        'great_catch': p.catch_prob_2,
-                        'ultra_catch': p.catch_prob_3,
-                        'atk_grade': p.rating_attack,
-                        'def_grade': p.rating_defense
+                        'base_catch': catch_prob_1,
+                        'great_catch': catch_prob_2,
+                        'ultra_catch': catch_prob_3,
+                        'atk_grade': rating_attack,
+                        'def_grade': rating_defense
                     })
                     if wh_poke['cp_multiplier'] is not None:
                         wh_poke.update({
