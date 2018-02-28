@@ -2304,6 +2304,17 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
 
                     current_weather = weather[s2_cell_id]['gameplay_weather'] \
                         if weather and s2_cell_id in weather else None
+                    base_catch = pokemon[p.encounter_id]['catch_prob_1'] \
+                        if pokemon[p.encounter_id]['catch_prob_1'] else None
+                    great_catch = pokemon[p.encounter_id]['catch_prob_2'] \
+                        if pokemon[p.encounter_id]['catch_prob_2'] else None
+                    ultra_catch = pokemon[p.encounter_id]['catch_prob_3'] \
+                        if pokemon[p.encounter_id]['catch_prob_3'] else None
+                    atk_grade = pokemon[p.encounter_id]['rating_attack'] \
+                        if pokemon[p.encounter_id]['rating_attack'] else None
+                    def_grade = pokemon[p.encounter_id]['rating_defense'] \
+                        if pokemon[p.encounter_id]['rating_defense'] else None
+                    
                     wh_poke = pokemon[p.encounter_id].copy()
                     wh_poke.update({
                         'disappear_time': calendar.timegm(
@@ -2318,11 +2329,11 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                         'weather': current_weather,
                         'boosted_weather': weather_boosted_condition,
                         's2_cell_id': s2_cell_id,
-                        'base_catch': wh_poke.catch_prob_1,
-                        'great_catch': wh_poke.catch_prob_2,
-                        'ultra_catch': wh_poke.catch_prob_3,
-                        'atk_grade': wh_poke.rating_attack,
-                        'def_grade': wh_poke.rating_defense
+                        'base_catch': base_catch,
+                        'great_catch': great_catch,
+                        'ultra_catch': ultra_catch,
+                        'atk_grade': atk_grade,
+                        'def_grade': def_grade
                     })
                     if wh_poke['cp_multiplier'] is not None:
                         wh_poke.update({
