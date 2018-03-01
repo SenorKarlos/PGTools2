@@ -3618,9 +3618,9 @@ def database_migrate(db, old_ver):
                        'ADD CONSTRAINT CONSTRAINT_4 CHECK ' +
                        '(`latest_seen` <= 3600);')
         
-        if old_ver < 30:
-            migrate(
-            # Add `park` column to `gym`
+    if old_ver < 30:
+        migrate(
+        # Add `park` column to `gym`
             migrator.add_column('gym', 'park', BooleanField(default=False)))
 
     # Always log that we're done.
