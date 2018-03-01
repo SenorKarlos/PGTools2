@@ -46,7 +46,7 @@ args = get_args()
 flaskDb = FlaskDB()
 cache = TTLCache(maxsize=100, ttl=60 * 5)
 
-db_schema_version = 30
+db_schema_version = 32
 
 
 
@@ -3618,7 +3618,7 @@ def database_migrate(db, old_ver):
                        'ADD CONSTRAINT CONSTRAINT_4 CHECK ' +
                        '(`latest_seen` <= 3600);')
         
-        if old_ver < 30:
+        if old_ver < 32:
             migrate(
             # Add `park` column to `gym`
             migrator.add_column('gym', 'park', BooleanField(default=False)))
