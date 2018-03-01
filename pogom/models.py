@@ -46,7 +46,7 @@ args = get_args()
 flaskDb = FlaskDB()
 cache = TTLCache(maxsize=100, ttl=60 * 5)
 
-db_schema_version = 29
+db_schema_version = 30
 
 
 
@@ -452,6 +452,7 @@ class Gym(LatLongModel):
     guard_pokemon_id = SmallIntegerField()
     slots_available = SmallIntegerField()
     enabled = BooleanField()
+    park = BooleanField(default=False)
     latitude = DoubleField()
     longitude = DoubleField()
     total_cp = SmallIntegerField()
@@ -667,6 +668,18 @@ class Gym(LatLongModel):
 
         return result
 
+    @staticmethod
+    def set_gyms_in_park(gyms, park):
+        gym_ids = [gym['gym_id'] for gym in gyms]
+        Gym.update(park=park).where(Gym.gym_id << gym_ids).execute()
+
+    @staticmethod
+    def get_gyms_park(id):
+        gym_by_id = Gym.select(Gym.park).where(
+            Gym.gym_id == id).dicts()
+        if gym_by_id:
+            return gym_by_id[0]['park']
+        return False
 
 class Raid(BaseModel):
     gym_id = Utf8mb4CharField(primary_key=True, max_length=50)
@@ -2393,6 +2406,8 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                 b64_gym_id = str(f.id)
                 gym_display = f.gym_display
                 raid_info = f.raid_info
+                park = Gym.get_gyms_park(f.id)
+                
                 # Send gyms to webhooks.
                 if 'gym' in args.wh_types:
                     raid_active_until = 0
@@ -2410,6 +2425,8 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                             b64_gym_id,
                         'team_id':
                             f.owned_by_team,
+                        'park':
+                            park,
                         'guard_pokemon_id':
                             f.guard_pokemon_id,
                         'slots_available':
@@ -2439,6 +2456,8 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                         f.id,
                     'team_id':
                         f.owned_by_team,
+                    'park':
+                        park,
                     'guard_pokemon_id':
                         f.guard_pokemon_id,
                     'gender':
@@ -3597,7 +3616,12 @@ def database_migrate(db, old_ver):
                        'DROP CONSTRAINT CONSTRAINT_4;')
         db.execute_sql('ALTER TABLE `spawnpoint` '
                        'ADD CONSTRAINT CONSTRAINT_4 CHECK ' +
-                       '(`latest_seen` <= 3600);')   
+                       '(`latest_seen` <= 3600);')
+        
+        if old_ver < 30:
+        migrate(
+            # Add `park` column to `gym`
+            migrator.add_column('gym', 'park', BooleanField(default=False)))
 
     # Always log that we're done.
     log.info('Schema upgrade complete.')
