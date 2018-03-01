@@ -3619,7 +3619,7 @@ def database_migrate(db, old_ver):
                        '(`latest_seen` <= 3600);')
         
         if old_ver < 30:
-        migrate(
+            migrate(
             # Add `park` column to `gym`
             migrator.add_column('gym', 'park', BooleanField(default=False)))
 
