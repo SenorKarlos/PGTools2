@@ -49,6 +49,17 @@ def convert_pokemon_list(pokemon):
                 transform_from_wgs_to_gcj(p['latitude'], p['longitude'])
         pokemon_result.append(p)
 
+        if args.hide_encounters:
+            p['cp'] = None
+            p['cp_multiplier'] = None
+            p['height'] = None
+            p['individual_attack'] = None
+            p['individual_defense'] = None
+            p['individual_stamina'] = None
+            p['move_1'] = None
+            p['move_2'] = None
+            p['weigth'] = None
+
     # Re-enable the GC.
     gc.enable()
     return pokemon
