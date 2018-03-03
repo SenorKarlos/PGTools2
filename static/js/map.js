@@ -531,6 +531,7 @@ function initSidebar() {
     $('#s2cells-switch').prop('checked', Store.get('showS2Cells'))
     $('#weather-alerts-switch').prop('checked', Store.get('showWeatherAlerts'))
     $('#prio-filter-switch').prop('checked', Store.get('prioFilter'))
+    
     // Only create the Autocomplete element if it's enabled in template.
     var elSearchBox = document.getElementById('next-location')
 
@@ -1861,7 +1862,7 @@ function processPokemon(item) {
     var oldMarker = null
     var newMarker = null
 
-    if (!(item['encounter_id'] in mapData.pokemons) &&
+    if ((!(item['encounter_id'] in mapData.pokemons) &&
          !isPokeExcluded && !isRarityExcluded  && isPokeAlive) || (!(item['encounter_id'] in mapData.pokemons) && isNotifyPkmn)) {
     // Add marker to map and item to dict.
         const isNotifyPkmn = isNotifyPoke(item)
