@@ -2295,7 +2295,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
                     'move_2': pokemon_info.move_2,
                     'height': pokemon_info.height_m,
                     'weight': pokemon_info.weight_kg,
-                    'gender': pokemon_info.gender,
+                    'gender': pokemon_info.pokemon_display.gender,
                     'cp': pokemon_info.cp,
                     'cp_multiplier': pokemon_info.cp_multiplier
                 })
