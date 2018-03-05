@@ -532,6 +532,7 @@ def search_overseer_thread(args, new_location_queue, control_flags, heartb,
         'accounts_captcha': 0,
         'accounts_failed': 0,
         'active_accounts': 0,
+		'busy_accounts': 0,
         'skip_total': 0,
         'captcha_total': 0,
         'success_total': 0,
@@ -804,53 +805,66 @@ def get_stats_message(threadStatus, search_items_queue_array, db_updates_queue,
              len(account_failures), len(account_captchas))
 
     message += (
-        'Total active: {}  |  Success: {} ({:.1f}/hr) | ' +
-        'Fails: {} ({:.1f}/hr) | Empties: {} ({:.1f}/hr) | ' +
-        'Skips {} ({:.1f}/hr) | Captchas: {} ({:.1f}/hr) (${:.1f}/hr, ' +
-        '${:.1f}/mo) | Elapsed: {:.1f}h'
-    ).format(overseer['active_accounts'], overseer['success_total'], sph,
-             overseer['fail_total'], fph, overseer['empty_total'], eph,
-             overseer['skip_total'], skph, overseer['captcha_total'], cph,
-             ccost, cmonth, elapsed / 3600.0)
+        'Total active: {}, busy: {}, idle: {} | ' +
+        'Success: {} ({:.1f}/hr) | ' +
+        'Fails: {} ({:.1f}/hr) | ' +
+        'Empties: {} ({:.1f}/hr) | ' +
+        'Skips {} ({:.1f}/hr) | ' +
+        'Captchas: {} ({:.2f}/hr)|${:.2f}/hr|${:.2f}/mo | ' +
+        'Elapsed: {:.1f}h'
+    ).format(overseer['active_accounts'], overseer['busy_accounts'],
+             (overseer['active_accounts'] - overseer['busy_accounts']),
+             overseer['success_total'], sph,
+			overseer['fail_total'], fph, overseer['empty_total'], eph,
+			overseer['skip_total'], skph, overseer['captcha_total'], cph,
+			ccost, cmonth, elapsed / 3600.0)
+
     return message
 
 
 def update_total_stats(threadStatus, last_account_status):
-    overseer = threadStatus['Overseer']
-    # Calculate totals.
-    active_count = 0
-    current_accounts = Set()
-    for tstatus in threadStatus.itervalues():
-        if tstatus.get('type', '') == 'Worker':
-            if tstatus.get('active', False):
-                active_count += 1
+	overseer = threadStatus['Overseer']
+	# Calculate totals.
+	active_count = 0
+	busy_count = 0
+	current_accounts = Set()
+	for tstatus in threadStatus.itervalues():
+		if tstatus.get('type', '') == 'Worker':
 
-            username = tstatus.get('username', '')
-            current_accounts.add(username)
-            last_status = last_account_status.get(username, {})
-            overseer['skip_total'] += stat_delta(tstatus, last_status, 'skip')
-            overseer['captcha_total'] += stat_delta(tstatus, last_status,
-                                                    'captcha')
-            overseer['empty_total'] += stat_delta(tstatus, last_status,
-                                                  'noitems')
-            overseer['fail_total'] += stat_delta(tstatus, last_status, 'fail')
-            overseer['success_total'] += stat_delta(tstatus, last_status,
-                                                    'success')
-            last_account_status[username] = {
-                'skip': tstatus['skip'],
-                'captcha': tstatus['captcha'],
-                'noitems': tstatus['noitems'],
-                'fail': tstatus['fail'],
-                'success': tstatus['success']
-            }
+			is_active = tstatus.get('active', False)
+			if is_active:
+				active_count += 1
 
-    overseer['active_accounts'] = active_count
+			if is_active and tstatus.get('message', '') != 'Nothing to scan.':
+				busy_count += 1
+
+			username = tstatus.get('username', '')
+			current_accounts.add(username)
+			last_status = last_account_status.get(username, {})
+			overseer['skip_total'] += stat_delta(tstatus, last_status, 'skip')
+			overseer['captcha_total'] += stat_delta(tstatus, last_status,
+													'captcha')
+			overseer['empty_total'] += stat_delta(tstatus, last_status,
+													'noitems')
+			overseer['fail_total'] += stat_delta(tstatus, last_status, 'fail')
+			overseer['success_total'] += stat_delta(tstatus, last_status,
+													'success')
+			last_account_status[username] = {
+				'skip': tstatus['skip'],
+				'captcha': tstatus['captcha'],
+				'noitems': tstatus['noitems'],
+				'fail': tstatus['fail'],
+				'success': tstatus['success']
+			}
+
+	overseer['active_accounts'] = active_count
+	overseer['busy_accounts'] = busy_count
 
     # Remove last status for accounts that workers
     # are not using anymore
-    for username in last_account_status.keys():
-        if username not in current_accounts:
-            del last_account_status[username]
+	for username in last_account_status.keys():
+		if username not in current_accounts:
+			del last_account_status[username]
 
 
 # Generates the list of locations to scan.
