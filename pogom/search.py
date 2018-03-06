@@ -829,6 +829,7 @@ def update_total_stats(threadStatus, last_account_status):
     busy_count = 0
     current_accounts = Set()
     for tstatus in threadStatus.itervalues():
+        if tstatus.get('type', '') =='Worker':
 
             is_active = tstatus.get('active', False)
             if is_active:
