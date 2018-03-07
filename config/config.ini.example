@@ -147,7 +147,7 @@
 # Proxy settings
 ################
 
-#proxy:                         # Proxy URL eg. socks5://127.0.0.1:9050 or a list of proxies
+#proxy:                         # Proxy URL e.g. socks5://127.0.0.1:9050 or a list of proxies
                                 # e.g. [socks5://127.0.0.1:9050,socks5://127.0.0.1:9050]
 #proxy-skip-check               # Disable checking of proxies before start.
 #proxy-test-timeout:            # Timeout before proceeding with next proxy while checking if the proxy works. (default=5)
