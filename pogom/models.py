@@ -2060,7 +2060,7 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
         # Weather Information Log
         log.info('Weather Info: Cloud Level: %s, Rain Level: %s, ' +
             'Wind Level: %s, Snow Level: %s, Fog Level: %s, ' +
-            'Wind Direction: %s Degreese.', display_weather.cloud_level,
+            'Wind Direction: %s°.', display_weather.cloud_level,
             display_weather.rain_level, display_weather.wind_level,
             display_weather.snow_level, display_weather.fog_level,
             display_weather.wind_direction)
