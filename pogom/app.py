@@ -360,7 +360,7 @@ class Pogom(Flask):
                                gmaps_key=args.gmaps_key,
                                lang=args.locale,
                                show=visibility_flags,
-				rarityFileName=args.rarityfilename
+			       rarityFileName=args.rarity_filename
                                )
 
     def raw_data(self):

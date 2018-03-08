@@ -579,9 +579,9 @@ def get_args():
                               ' should be updated. Decimals allowed.' +
                               ' Default: 0. 0 to disable.'),
                         type=float, default=0)
-    parser.add_argument('-RFN', '--rarityfilename', type=str,
-                        help=('Filename of Rarity Json for different Databases (without .json) ' +
-                              'Default: rarity '),
+    parser.add_argument('-Rfn', '--rarity-filename', type=str,
+                        help=('Filename of Rarity Json for different Databases (without .json)' +
+                              'Default: rarity'),
                         default='rarity')
     parser.set_defaults(DEBUG=False)
 
@@ -1449,7 +1449,7 @@ def dynamic_rarity_refresher():
     hours = args.rarity_hours
     root_path = args.root_path
  
-    rarities_path = os.path.join(root_path, 'static/dist/data/' + args.rarityfilename + '.json')
+    rarities_path = os.path.join(root_path, 'static/dist/data/' + args.rarity_filename + '.json')
     update_frequency_mins = args.rarity_update_frequency
     refresh_time_sec = update_frequency_mins * 60
  

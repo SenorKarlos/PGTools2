@@ -140,7 +140,7 @@
 #encrypt-lib:                   # Path to encrypt lib to be used instead of the shipped ones.
 #display-in-console             # Display Found Pokemon in Console.
 #disable-blacklist              # Disable the global anti-scraper IP blacklist.
-
+#rarity-filename:		# Name of the JSON File for dynamic rarity. Using two different RM Databases with two instances out of the same folter. Default (if empty): rarity.json
 
 # Proxy settings
 ################
