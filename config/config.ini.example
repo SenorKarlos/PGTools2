@@ -211,9 +211,9 @@
 #uas-client-id:                 # OAuth2 Client ID.
 #uas-client-secret:             # OAuth2 Client Secret. Client should have auth callback url of <yourserverurl>/auth_callback
 #uas-host-override              # override auth redirect host.
-#uas-discord-required-guilds    # (Optional) If guild ID(s) are specified, user must be in at least one discord guild (server) to access map. Comma separated if multiple.
+#uas-discord-required-guilds    # (Optional) If guild ID(s) are specified, user must be in at least one discord guild (server) to access map. Comma separated if multiple. No spaces or it won't work!
 #uas-discord-guild-invite       # Invite link to redirect user to if user is not in above guild(s)
-#uas-discord-required-roles     # (Optional) If specified, user must be in one of these discord roles. Comma separated list of role ids. Requires bot configured below. Only supports single required guild.
+#uas-discord-required-roles     # (Optional) If specified, user must be in one of these discord roles. Comma separated list of role ids. No spaces or it won't work! Requires bot configured below. Only supports single required guild.
 #uas-discord-bot-token          # Token for bot with access to your guild. Only required for required-roles feature
 
 # Misc
