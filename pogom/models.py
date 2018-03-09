@@ -2950,13 +2950,6 @@ def clean_db_loop(args):
             if args.db_cleanup_worker > 0:
                 db_cleanup_worker_status(args.db_cleanup_worker)
 
-            # Remove old weather TODO: Extend the other cleanups by weather
-            query = (Weather
-                    .delete()
-                    .where((Weather.last_updated <
-                            (datetime.utcnow() - timedelta(minutes=15)))))
-            query.execute()
-
             # Check if it's time to run full database cleanup.
             now = default_timer()
             if now - full_cleanup_timer > full_cleanup_secs:
@@ -2975,6 +2968,13 @@ def clean_db_loop(args):
                 # Remove old pokestop and gym locations.
                 if args.db_cleanup_forts > 0:
                     db_clean_forts(args.db_cleanup_forts)
+
+                #clean weather... only changes at full hours anyway...
+                query = (Weather
+                    .delete()
+                    .where((Weather.last_updated <
+                    (datetime.utcnow() - timedelta(minutes=15)))))
+                query.execute()
 
                 log.info('Full database cleanup completed.')
                 full_cleanup_timer = now
@@ -3027,18 +3027,19 @@ def db_cleanup_worker_status(age_minutes):
                  .delete()
                  .where(MainWorker.last_modified < worker_status_timeout))
         query.execute()
-        queryOptimize = MainWorker.raw('OPTIMIZE TABLE mainworker')
-        queryOptimize.execute()
-        log.debug('Finished %s.', queryOptimize)
+        #OPTIMIZE TABLE locks the table...
+        #queryOptimize = MainWorker.raw('OPTIMIZE TABLE mainworker')
+        #queryOptimize.execute()
+        #log.debug('Finished %s.', queryOptimize)
 
         # Remove worker status information that are inactive.
         query = (WorkerStatus
                  .delete()
                  .where(MainWorker.last_modified < worker_status_timeout))
         query.execute()
-        queryOptimize = WorkerStatus.raw('OPTIMIZE TABLE workerstatus')
-        queryOptimize.execute()
-        log.debug('Finished %s.', queryOptimize)
+        #queryOptimize = WorkerStatus.raw('OPTIMIZE TABLE workerstatus')
+        #queryOptimize.execute()
+        #log.debug('Finished %s.', queryOptimize)
 
     time_diff = default_timer() - start_timer
     log.debug('Completed cleanup of old worker status in %.6f seconds.',
@@ -3055,10 +3056,6 @@ def db_clean_pokemons(age_hours):
                  .where(Pokemon.disappear_time < pokemon_timeout))
         rows = query.execute()
         log.debug('Deleted %d old Pokemon entries.', rows)
-        #now optimise the table...
-        #queryOptimize = Pokemon.raw('OPTIMIZE TABLE pokemon')
-        #queryOptimize.execute()
-        #log.debug('Finished %s.', queryOptimize)
 
     time_diff = default_timer() - start_timer
     log.debug('Completed cleanup of old pokemon spawns in %.6f seconds.',
@@ -3078,9 +3075,6 @@ def db_clean_gyms(age_hours, gyms_age_days=30):
                  .where(GymDetails.last_scanned < gym_info_timeout))
         rows = query.execute()
         log.debug('Deleted %d old GymDetails entries.', rows)
-        queryOptimize = GymDetails.raw('OPTIMIZE TABLE gymdetails')
-        queryOptimize.execute()
-        log.debug('Finished %s.', queryOptimize)
 
         # Remove old Raid entries.
         query = (Raid
@@ -3088,9 +3082,6 @@ def db_clean_gyms(age_hours, gyms_age_days=30):
                  .where(Raid.end < gym_info_timeout))
         rows = query.execute()
         log.debug('Deleted %d old Raid entries.', rows)
-        queryOptimize = Raid.raw('OPTIMIZE TABLE raid')
-        queryOptimize.execute()
-        log.debug('Finished %s.', queryOptimize)
 
         # Remove old GymMember entries.
         query = (GymMember
@@ -3098,9 +3089,6 @@ def db_clean_gyms(age_hours, gyms_age_days=30):
                  .where(GymMember.last_scanned < gym_info_timeout))
         rows = query.execute()
         log.debug('Deleted %d old GymMember entries.', rows)
-        queryOptimize = GymMember.raw('OPTIMIZE TABLE gymmember')
-        queryOptimize.execute()
-        log.debug('Finished %s.', queryOptimize)
 
         # Remove old GymPokemon entries.
         query = (GymPokemon
@@ -3108,9 +3096,6 @@ def db_clean_gyms(age_hours, gyms_age_days=30):
                  .where(GymPokemon.last_seen < gym_info_timeout))
         rows = query.execute()
         log.debug('Deleted %d old GymPokemon entries.', rows)
-        queryOptimize = GymPokemon.raw('OPTIMIZE TABLE gympokemon')
-        queryOptimize.execute()
-        log.debug('Finished %s.', queryOptimize)
 
     time_diff = default_timer() - start_timer
     log.debug('Completed cleanup of old gym data in %.6f seconds.',
@@ -3153,9 +3138,6 @@ def db_clean_spawnpoints(age_hours, missed=5):
                          spawnpoint_timeout)))
         num_rows += query.execute()
         log.debug('Deleted %d old SpawnpointDetectionData entries.', num_rows)
-        queryOptimize = SpawnpointDetectionData.raw('OPTIMIZE TABLE spawnpointdetectiondata')
-        queryOptimize.execute()
-        log.debug('Finished %s.', queryOptimize)
 
         # Select ScannedLocation entries associated to old spawnpoints.
         sl_delete = set()
@@ -3190,9 +3172,6 @@ def db_clean_spawnpoints(age_hours, missed=5):
                              old_sp[i:min(i + step, num_records)])))
             num_rows += query.execute()
         log.debug('Deleted %d old SpawnPoint entries.', num_rows)
-        queryOptimize = SpawnPoint.raw('OPTIMIZE TABLE spawnpoint')
-        queryOptimize.execute()
-        log.debug('Finished %s.', queryOptimize)
 
         sl_delete = list(sl_delete)
         num_records = len(sl_delete)
@@ -3207,9 +3186,6 @@ def db_clean_spawnpoints(age_hours, missed=5):
             num_rows += query.execute()
         log.debug('Deleted %d ScanSpawnPoint entries from old scan locations.',
                   num_rows)
-        queryOptimize = ScanSpawnPoint.raw('OPTIMIZE TABLE scanspawnpoint')
-        queryOptimize.execute()
-        log.debug('Finished %s.', queryOptimize)
 
         # Remove ScannedLocation entries associated with old spawnpoints.
         num_rows = 0
@@ -3223,9 +3199,6 @@ def db_clean_spawnpoints(age_hours, missed=5):
             num_rows += query.execute()
         log.debug('Deleted %d ScannedLocation entries from old spawnpoints.',
                   num_rows)
-        queryOptimize = ScannedLocation.raw('OPTIMIZE TABLE scannedlocation')
-        queryOptimize.execute()
-        log.debug('Finished %s.', queryOptimize)
 
     time_diff = default_timer() - start_timer
     log.debug('Completed cleanup of old spawnpoint data in %.6f seconds.',
@@ -3245,9 +3218,6 @@ def db_clean_forts(age_hours):
                  .where(Gym.last_scanned < fort_timeout))
         rows = query.execute()
         log.debug('Deleted %d old Gym entries.', rows)
-        queryOptimize = Gym.raw('OPTIMIZE TABLE gym')
-        queryOptimize.execute()
-        log.debug('Finished %s.', queryOptimize)
 
         # Remove old Pokestop entries.
         query = (Pokestop
@@ -3255,9 +3225,6 @@ def db_clean_forts(age_hours):
                  .where(Pokestop.last_updated < fort_timeout))
         rows = query.execute()
         log.debug('Deleted %d old Pokestop entries.', rows)
-        queryOptimize = Pokestop.raw('OPTIMIZE TABLE pokestop')
-        queryOptimize.execute()
-        log.debug('Finished %s.', queryOptimize)
 
     time_diff = default_timer() - start_timer
     log.debug('Completed cleanup of old forts in %.6f seconds.',
