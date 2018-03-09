@@ -3056,9 +3056,9 @@ def db_clean_pokemons(age_hours):
         rows = query.execute()
         log.debug('Deleted %d old Pokemon entries.', rows)
         #now optimise the table...
-        queryOptimize = Pokemon.raw('OPTIMIZE TABLE pokemon')
-        queryOptimize.execute()
-        log.debug('Finished %s.', queryOptimize)
+        #queryOptimize = Pokemon.raw('OPTIMIZE TABLE pokemon')
+        #queryOptimize.execute()
+        #log.debug('Finished %s.', queryOptimize)
 
     time_diff = default_timer() - start_timer
     log.debug('Completed cleanup of old pokemon spawns in %.6f seconds.',
