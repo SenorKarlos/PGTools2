@@ -858,7 +858,7 @@ var StoreOptions = {
         default: [],
         type: StoreTypes.JSON
     },
-    'prioFilter': {
+    'prioNotify': {
         default: false,
         type: StoreTypes.Boolean
     },
