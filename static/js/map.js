@@ -39,6 +39,7 @@ var excludedRarity
 var notifiedPokemon = []
 var notifiedRarity = []
 var notifiedMinPerfection = null
+var onlyPokemon = 0
 var notifiedMinLevel = null
 
 var buffer = []
@@ -571,6 +572,19 @@ function openMapDirections(lat, lng) { // eslint-disable-line no-unused-vars
     }
 }
 
+function toggleOtherPokemon(pokemonId) {
+    onlyPokemon = onlyPokemon === 0 ? pokemonId : 0
+    if (onlyPokemon === 0) {
+        // reload all Pokemon
+        lastpokemon = false
+        updateMap()
+    } else {
+        // remove other Pokemon
+        clearStaleMarkers()
+    }
+}
+
+
 // Converts timestamp to readable String
 function getDateStr(t) {
     var dateStr = 'Unknown'
@@ -791,6 +805,9 @@ function pokemonLabel(item) {
 				  <div id='scoutInfo${encounterIdLong}' class='pokemon scoutinfo'></div>
 			  </div>
 			</div>
+				  <div>
+					<a href='javascript:void(0);' onclick='javascript:toggleOtherPokemon("${id}");' title='Toggle display of other Pokemon'>Toggle Others</a>
+				  </div>
 		  </div>`
 		} else {
 			contentstring += `
@@ -1593,9 +1610,13 @@ function clearStaleMarkers() {
         if (isPokeExpired || isPokeExcluded || isRarityExcluded) {
             const oldMarker = pokemon.marker
 			const isPokeExcludedByRarity = excludedPokemonByRarity.indexOf(pokemonId) !== -1
-			
+			excludedPokemon.indexOf(mapData.pokemons[key]['pokemon_id']) >= 0 ||
+            isTemporaryHidden(mapData.pokemons[key]['pokemon_id'])) {
+
 			if (isRarityExcluded && !isPokeExcludedByRarity) {
 				excludedPokemonByRarity.push(pokemonId)
+				excludedPokemon.indexOf(mapData.pokemons[key]['pokemon_id']) >= 0 ||
+				isTemporaryHidden(mapData.pokemons[key]['pokemon_id'])) {
 			}
 
             if (oldMarker.rangeCircle) {
@@ -1864,6 +1885,8 @@ function processPokemon(item) {
     var newMarker = null
 
     if (!(item['encounter_id'] in mapData.pokemons) &&
+         excludedPokemon.indexOf(item['pokemon_id']) < 0 && item['disappear_time'] > Date.now() &&
+         !isTemporaryHidden(item['pokemon_id'])) {
          !isPokeExcluded && !isRarityExcluded  && isPokeAlive) {
     // Add marker to map and item to dict.
         const isNotifyPkmn = isNotifyPoke(item)
