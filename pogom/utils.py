@@ -580,7 +580,7 @@ def get_args():
                               ' Default: 0. 0 to disable.'),
                         type=float, default=0)
     parser.add_argument('-Rfn', '--rarity-filename', type=str,
-                        help=('Filename of Rarity Json for different Databases (without .json)' +
+                        help=('Filename of rarity json for different databases (without .json)' +
                               'Default: rarity'),
                         default='rarity')
     parser.set_defaults(DEBUG=False)
