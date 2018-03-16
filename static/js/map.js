@@ -114,7 +114,8 @@ const excludedRaritiesList = [
   [i8ln('Common'), i8ln('Uncommon')],
   [i8ln('Common'), i8ln('Uncommon'), i8ln('Rare')],
   [i8ln('Common'), i8ln('Uncommon'), i8ln('Rare'), i8ln('Very Rare')],
-  [i8ln('Common'), i8ln('Uncommon'), i8ln('Rare'), i8ln('Very Rare'), i8ln('Ultra Rare')]
+  [i8ln('Common'), i8ln('Uncommon'), i8ln('Rare'), i8ln('Very Rare'), i8ln('Ultra Rare')],
+  [i8ln('Common'), i8ln('Uncommon'), i8ln('Rare'), i8ln('Very Rare'), i8ln('Ultra Rare')], i8ln('New Spawn')]
 ]
 
 
