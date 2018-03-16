@@ -1200,6 +1200,7 @@ function setupPokemonMarkerDetails(item, map, scaleByRarity = true, isNotifyPkmn
 
     if (scaleByRarity) {
         const rarityValues = {
+            'new spawn': 40,
             'very rare': 30,
             'ultra rare': 40,
             'legendary': 50
