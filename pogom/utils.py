@@ -497,11 +497,6 @@ def get_args():
     parser.add_argument('--disable-blacklist',
                         help=('Disable the global anti-scraper IP blacklist.'),
                         action='store_true', default=False)
-    parser.add_argument('-exg', '--ex-gyms',
-                        help=('Fetch OSM parks within geofence and flag ' +
-                              'gyms that are candidates for EX raids. ' +
-                              'Only required once per area.'),
-                        action='store_true', default=False)
     parser.add_argument('-tp', '--trusted-proxies', default=[],
                         action='append',
                         help=('Enables the use of X-FORWARDED-FOR headers ' +
@@ -559,6 +554,8 @@ def get_args():
                         help='Directory pointing to optional PogoAssets root directory.')
     parser.add_argument('-uas', '--user-auth-service', default=None,
                         help='Force end users to auth to an external service.')
+    parser.add_argument('-skey', '--secret-key', default='SECRET_KEY',
+                        help='Secret Key to encrypt session cookies. Use a secure string.')
     parser.add_argument('-uascid', '--uas-client-id', default=None,
                         help='Client ID for user external authentication.')
     parser.add_argument('-uascs', '--uas-client-secret', default=None,
@@ -584,13 +581,6 @@ def get_args():
                               ' should be updated. Decimals allowed.' +
                               ' Default: 0. 0 to disable.'),
                         type=float, default=0)
-
-    parser.add_argument('-Rct', '--rarity-cache-timer',
-                        help=('How often (in minutes) the dynamic rarity cache' +
-                              ' should be updated. Only works if at least one instance use -Rf' +
-                              ' Default: 5.'),
-                        type=float, default=5)
-
     parser.set_defaults(DEBUG=False)
 
     args = parser.parse_args()
@@ -1428,16 +1418,14 @@ def get_debug_dump_link():
     # Upload to hasteb.in.
     return upload_to_hastebin(result)
 
- 
+
 def get_pokemon_rarity(total_spawns_all, total_spawns_pokemon):
     spawn_group = 'Common'
 
     spawn_rate_pct = total_spawns_pokemon / float(total_spawns_all)
     spawn_rate_pct = round(100 * spawn_rate_pct, 4)
 
-    if spawn_rate_pct == 0:
-        spawn_group = 'New Spawn'
-    elif spawn_rate_pct < 0.01:
+    if spawn_rate_pct < 0.01:
         spawn_group = 'Ultra Rare'
     elif spawn_rate_pct < 0.03:
         spawn_group = 'Very Rare'
@@ -1449,47 +1437,44 @@ def get_pokemon_rarity(total_spawns_all, total_spawns_pokemon):
     return spawn_group
 
 
-def dynamic_rarity_refresher(db_updates_queue):
+def dynamic_rarity_refresher():
     # If we import at the top, pogom.models will import pogom.utils,
     # causing the cyclic import to make some things unavailable.
     from pogom.models import Pokemon
-    from pogom.models import Rarity
 
     # Refresh every x hours.
     args = get_args()
     hours = args.rarity_hours
     root_path = args.root_path
- 
+
     rarities_path = os.path.join(root_path, 'static/dist/data/rarity.json')
     update_frequency_mins = args.rarity_update_frequency
     refresh_time_sec = update_frequency_mins * 60
- 
+
     while True:
         log.info('Updating dynamic rarity...')
- 
+
         start = default_timer()
         db_rarities = Pokemon.get_spawn_counts(hours)
         total = db_rarities['total']
         pokemon = db_rarities['pokemon']
- 
+
         # Store as an easy lookup table for front-end.
         rarities = {}
- 
+
         for poke in pokemon:
             rarities[poke['pokemon_id']] = get_pokemon_rarity(total,
                                                                 poke['count'])
 
-        Rarity.update_pokemon_rarity_db(rarities, db_updates_queue) 
-
         # Save to file.
         with open(rarities_path, 'w') as outfile:
             json.dump(rarities, outfile)
- 
+
         duration = default_timer() - start
         log.info('Updated dynamic rarity. It took %.2fs for %d entries.',
                     duration,
                     total)
- 
+
         # Wait x seconds before next refresh.
         log.debug('Waiting %d minutes before next dynamic rarity update.',
                     refresh_time_sec / 60)
@@ -1505,4 +1490,4 @@ def peewee_attr_to_col(cls, field):
     else:
         field_column = field
 
-    return field_column    
+    return field_column
