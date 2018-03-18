@@ -497,6 +497,11 @@ def get_args():
     parser.add_argument('--disable-blacklist',
                         help=('Disable the global anti-scraper IP blacklist.'),
                         action='store_true', default=False)
+    parser.add_argument('-exg', '--ex-gyms',
+                        help=('Fetch OSM parks within geofence and flag ' +
+                              'gyms that are candidates for EX raids. ' +
+                              'Only required once per area.'),
+                        action='store_true', default=False)
     parser.add_argument('-tp', '--trusted-proxies', default=[],
                         action='append',
                         help=('Enables the use of X-FORWARDED-FOR headers ' +
