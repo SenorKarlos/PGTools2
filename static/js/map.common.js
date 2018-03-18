@@ -859,7 +859,7 @@ var StoreOptions = {
         type: StoreTypes.JSON
     },
     'remember_select_rarity_notify': {
-        default: [], // Common, Uncommon, Rare, Very Rare, Ultra Rare
+        default: [], // Common, Uncommon, Rare, Very Rare, Ultra Rare, New Spawn
         type: StoreTypes.JSON
     },
     'remember_text_perfection_notify': {
@@ -871,10 +871,14 @@ var StoreOptions = {
         type: StoreTypes.Number
     },
 	'excludedRarity': {
-        default: 0, // 0: none, 1: <=Common, 2: <=Uncommon, 3: <=Rare, 4: <=Very Rare, 5: <=Ultra Rare
+        default: 0, // 0: none, 1: <=Common, 2: <=Uncommon, 3: <=Rare, 4: <=Very Rare, 5: <=Ultra Rare, 6: <=New Spawn
         type: StoreTypes.Number
     },
     'showRaids': {
+        default: false,
+        type: StoreTypes.Boolean
+    },
+    'showParkRaidsOnly': {
         default: false,
         type: StoreTypes.Boolean
     },
@@ -895,6 +899,10 @@ var StoreOptions = {
         type: StoreTypes.Boolean
     },
     'useGymSidebar': {
+        default: false,
+        type: StoreTypes.Boolean
+    },
+    'showParkGymsOnly': {
         default: false,
         type: StoreTypes.Boolean
     },
@@ -1007,7 +1015,7 @@ var StoreOptions = {
         type: StoreTypes.String
     },
     'iconSizeModifier': {
-        default: 0,
+        default: 10,
         type: StoreTypes.Number
     },
     'scaleByRarity': {
@@ -1200,6 +1208,7 @@ function setupPokemonMarkerDetails(item, map, scaleByRarity = true, isNotifyPkmn
 
     if (scaleByRarity) {
         const rarityValues = {
+            'new spawn': 40,
             'very rare': 30,
             'ultra rare': 40,
             'legendary': 50

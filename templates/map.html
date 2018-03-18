@@ -44,10 +44,7 @@
       <!-- Header -->
       <header id="header">
         <a href="#nav"><span class="label">Options</span></a>
-        <h1><a href="./">RocketMap<img class='rocket icon' src='static/images/rocket.png'></a></h1>
-        <a href="#stats" id="statsToggle" class="statsNav" style="float: right;"><span class="label">Stats</span></a>
-        <a href="status" target="_blank" style="float: right;"><span class="label">Status</span></a>
-        <span id="weatherInfo" style="float: right; vertical-align: middle;"></span>
+		        {% include 'web_header_links.txt' %}
       </header>
       <!-- NAV -->
       <nav id="nav">
@@ -78,11 +75,21 @@
               </div>
             </div>
             <div id="raids-filter-wrapper" style="display:none">
-              <div class="form-control switch-container" id="raid-active-gym-wrapper">
+             <div class="form-control switch-container" id="raid-active-gym-wrapper">
                 <h3>Show Active Raids only</h3>
                 <div class="onoffswitch">
                   <input id="raid-active-gym-switch" type="checkbox" name="raid-active-gym-switch" class="onoffswitch-checkbox" checked>
                   <label class="onoffswitch-label" for="raid-active-gym-switch">
+                  <span class="switch-label" data-on="On" data-off="Off"></span>
+                  <span class="switch-handle"></span>
+                  </label>
+                </div>
+              </div>
+                 <div class="form-control switch-container" id="park-active-gym-wrapper">
+                <h3>Show Park Raids only</h3>
+                <div class="onoffswitch">
+                  <input id="raid-park-gym-switch" type="checkbox" name="raid-park-gym-switch" class="onoffswitch-checkbox" checked>
+                  <label class="onoffswitch-label" for="raid-park-gym-switch">
                   <span class="switch-label" data-on="On" data-off="Off"></span>
                   <span class="switch-handle"></span>
                   </label>
@@ -148,6 +155,16 @@
                 <div class="onoffswitch">
                   <input id="open-gyms-only-switch" type="checkbox" name="open-gyms-only-switch" class="onoffswitch-checkbox" checked>
                   <label class="onoffswitch-label" for="open-gyms-only-switch">
+                  <span class="switch-label" data-on="On" data-off="Off"></span>
+                  <span class="switch-handle"></span>
+                  </label>
+                </div>
+              </div>
+              <div class="form-control switch-container" id="park-gyms-only-wrapper">
+                <h3>Park Gyms Only</h3>
+                <div class="onoffswitch">
+                  <input id="park-gyms-only-switch" type="checkbox" name="park-gyms-only-switch" class="onoffswitch-checkbox" checked>
+                  <label class="onoffswitch-label" for="park-gyms-only-switch">
                   <span class="switch-label" data-on="On" data-off="Off"></span>
                   <span class="switch-handle"></span>
                   </label>
@@ -576,4 +593,4 @@
     <script defer src="https://maps.googleapis.com/maps/api/js?key={{ gmaps_key }}&amp;callback=initMap&amp;libraries=places,geometry"></script>
     <script async src='https://www.google-analytics.com/analytics.js'></script>
   </body>
-</html>
+</html> 
