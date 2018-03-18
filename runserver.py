@@ -25,7 +25,7 @@ from pogom.utils import (get_args, now, gmaps_reverse_geolocate, init_args,
                          log_resource_usage_loop, get_debug_dump_link,
                          dynamic_rarity_refresher)
 from pogom.altitude import get_gmaps_altitude
-
+from pogom.osm import update_ex_gyms
 from pogom.models import (init_database, create_tables, drop_tables,
                           PlayerLocale, db_updater, clean_db_loop,
                           verify_table_encoding, verify_database_schema)
@@ -289,6 +289,15 @@ def main():
 
     args.root_path = os.path.dirname(os.path.abspath(__file__))
     init_args(args)
+  
+    if args.ex_gyms:
+        # Geofence is required.
+        if not args.geofence_file:
+            log.critical('A geofence is required to find EX-gyms.')
+            sys.exit(1)
+        update_ex_gyms(args.geofence_file)
+        log.info('Finished checking gyms against OSM parks, exiting.')
+        sys.exit(1)
 
     # Initialize Mr. Mime library
     mrmime_cfg = {
@@ -321,7 +330,7 @@ def main():
     # Let's not forget to run Grunt / Only needed when running with webserver.
     if not args.no_server and not validate_assets(args):
         sys.exit(1)
- 
+
     if args.no_version_check and not args.only_server:
         log.warning('You are running RocketMap in No Version Check mode. '
                     "If you don't know what you're doing, this mode "
@@ -368,7 +377,7 @@ def main():
                               os.path.abspath(__file__)).decode('utf8'))
         app.before_request(app.validate_request)
         app.set_current_location(position)
-        
+
     db = startup_db(app, args.clear_db)
 
 
@@ -405,7 +414,7 @@ def main():
         t.start()
 
     # Database cleaner; really only need one ever.
-    if args.enable_clean:
+    if args.db_cleanup:
         t = Thread(target=clean_db_loop, name='db-cleaner', args=(args,))
         t.daemon = True
         t.start()
