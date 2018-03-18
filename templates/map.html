@@ -44,10 +44,7 @@
       <!-- Header -->
       <header id="header">
         <a href="#nav"><span class="label">Options</span></a>
-        <h1><a href="./">RocketMap<img class='rocket icon' src='static/images/rocket.png'></a></h1>
-        <a href="#stats" id="statsToggle" class="statsNav" style="float: right;"><span class="label">Stats</span></a>
-        <a href="status" target="_blank" style="float: right;"><span class="label">Status</span></a>
-        <span id="weatherInfo" style="float: right; vertical-align: middle;"></span>
+		        {% include 'web_header_links.txt' %}
       </header>
       <!-- NAV -->
       <nav id="nav">
@@ -276,7 +273,6 @@
                 <option value="3">Rare and below</option>
                 <option value="4">Very Rare and below</option>
                 <option value="5">Ultra Rare and below</option>
-                <option value="6">New Spawns and below</option>
               </select>
             </div>
 			
@@ -597,4 +593,4 @@
     <script defer src="https://maps.googleapis.com/maps/api/js?key={{ gmaps_key }}&amp;callback=initMap&amp;libraries=places,geometry"></script>
     <script async src='https://www.google-analytics.com/analytics.js'></script>
   </body>
-</html>
+</html> 
