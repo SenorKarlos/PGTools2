@@ -858,6 +858,10 @@ var StoreOptions = {
         default: [],
         type: StoreTypes.JSON
     },
+    'prioNotify': {
+        default: false,
+        type: StoreTypes.Boolean
+    },
     'remember_select_rarity_notify': {
         default: [], // Common, Uncommon, Rare, Very Rare, Ultra Rare
         type: StoreTypes.JSON
@@ -874,11 +878,11 @@ var StoreOptions = {
         default: 0, // 0: none, 1: <=Common, 2: <=Uncommon, 3: <=Rare, 4: <=Very Rare, 5: <=Ultra Rare
         type: StoreTypes.Number
     },
-    'showRaids': {
+    'showParkRaidsOnly': {
         default: false,
         type: StoreTypes.Boolean
     },
-    'showParkRaidsOnly': {
+    'showRaids': {
         default: false,
         type: StoreTypes.Boolean
     },
@@ -898,11 +902,11 @@ var StoreOptions = {
         default: false,
         type: StoreTypes.Boolean
     },
-    'useGymSidebar': {
+    'showParkGymsOnly': {
         default: false,
         type: StoreTypes.Boolean
     },
-    'showParkGymsOnly': {
+    'useGymSidebar': {
         default: false,
         type: StoreTypes.Boolean
     },
