@@ -44,10 +44,7 @@
       <!-- Header -->
       <header id="header">
         <a href="#nav"><span class="label">Options</span></a>
-        <h1><a href="./">RocketMap<img class='rocket icon' src='static/images/rocket.png'></a></h1>
-        <a href="#stats" id="statsToggle" class="statsNav" style="float: right;"><span class="label">Stats</span></a>
-        <a href="status" target="_blank" style="float: right;"><span class="label">Status</span></a>
-        <span id="weatherInfo" style="float: right; vertical-align: middle;"></span>
+		        {% include 'web_header_links.txt' %}
       </header>
       <!-- NAV -->
       <nav id="nav">
@@ -56,7 +53,7 @@
           <div>
               {% if show.pokemons %}
             <div class="form-control switch-container">
-              <h3>Pokémon</h3>
+              <h3>PokÃ©mon</h3>
               <div class="onoffswitch">
                 <input id="pokemon-switch" type="checkbox" name="pokemon-switch" class="onoffswitch-checkbox" checked>
                 <label class="onoffswitch-label" for="pokemon-switch">
@@ -212,7 +209,7 @@
               {% endif %}
               {% if show.pokestops %}
             <div class="form-control switch-container">
-              <h3>Pokéstops</h3>
+              <h3>PokÃ©stops</h3>
               <div class="onoffswitch">
                 <input id="pokestops-switch" type="checkbox" name="pokestops-switch" class="onoffswitch-checkbox" checked>
                 <label class="onoffswitch-label" for="pokestops-switch">
@@ -261,7 +258,7 @@
               {% if show.pokemons %}
             <div class="form-control">
               <label for="exclude-pokemon">
-              <h3>Hide Pokémon</h3>
+              <h3>Hide PokÃ©mon</h3>
               <div style="max-height:165px;overflow-y:auto">
                 <select id="exclude-pokemon" multiple="multiple"></select>
               </div>
@@ -276,13 +273,12 @@
                 <option value="3">Rare and below</option>
                 <option value="4">Very Rare and below</option>
                 <option value="5">Ultra Rare and below</option>
-                <option value="6">New Spawns and below</option>
               </select>
             </div>
 			
 				{% if show.encounter %}
             <div class="form-control switch-container">
-              <h3>Pokémon Stats</h3>
+              <h3>PokÃ©mon Stats</h3>
               <div class="onoffswitch">
                 <input id="pokemon-stats-switch" type="checkbox" name="pokemon-stats-switch" class="onoffswitch-checkbox" checked>
                 <label class="onoffswitch-label" for="pokemon-stats-switch">
@@ -409,7 +405,7 @@
           <div>
             <div class="form-control">
               <label for="notify-pokemon">
-                <h3>Notify of Pokémon</h3>
+                <h3>Notify of PokÃ©mon</h3>
                 <div style="max-height:165px;overflow-y:auto">
                   <select id="notify-pokemon" multiple="multiple"></select>
                 </div>
@@ -481,7 +477,7 @@
               </div>
             </div>
               <div class="form-control switch-container">
-              <h3>Use Pokémon cries</h3>
+              <h3>Use PokÃ©mon cries</h3>
                 <div class="onoffswitch">
                 <input id="cries-switch" type="checkbox" name="cries-switch" class="onoffswitch-checkbox" checked>
                   <label class="onoffswitch-label" for="cries-switch">
@@ -597,4 +593,4 @@
     <script defer src="https://maps.googleapis.com/maps/api/js?key={{ gmaps_key }}&amp;callback=initMap&amp;libraries=places,geometry"></script>
     <script async src='https://www.google-analytics.com/analytics.js'></script>
   </body>
-</html>
+</html> 
