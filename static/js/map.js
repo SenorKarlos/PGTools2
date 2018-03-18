@@ -498,8 +498,8 @@ function initSidebar() {
     $('#gym-sidebar-wrapper').toggle(Store.get('showGyms') || Store.get('showRaids'))
     $('#gyms-filter-wrapper').toggle(Store.get('showGyms'))
     $('#team-gyms-only-switch').val(Store.get('showTeamGymsOnly'))
-    $('#raids-switch').prop('checked', Store.get('showRaids'))
     $('#raid-park-gym-switch').prop('checked', Store.get('showParkRaidsOnly'))
+    $('#raids-switch').prop('checked', Store.get('showRaids'))
     $('#raid-active-gym-switch').prop('checked', Store.get('showActiveRaidsOnly'))
     $('#raid-min-level-only-switch').val(Store.get('showRaidMinLevel'))
     $('#raid-max-level-only-switch').val(Store.get('showRaidMaxLevel'))
@@ -534,7 +534,8 @@ function initSidebar() {
     $('#weather-cells-switch').prop('checked', Store.get('showWeatherCells'))
     $('#s2cells-switch').prop('checked', Store.get('showS2Cells'))
     $('#weather-alerts-switch').prop('checked', Store.get('showWeatherAlerts'))
-
+    $('#prio-notify-switch').prop('checked', Store.get('prioNotify'))
+    
     // Only create the Autocomplete element if it's enabled in template.
     var elSearchBox = document.getElementById('next-location')
 
@@ -1243,22 +1244,28 @@ function playPokemonSound(pokemonID, cryFileTypes) {
 
 
 function isNotifyPerfectionPoke(poke) {
-
-    var hasHighIV = false
-    var hasHighLevel = false
     var hasHighAttributes = false
+    var hasHighIV = false
 
-    if (poke['individual_attack'] != null && poke['cp_multiplier'] !== null) {
+    // Notify for IV.
+    if (poke['individual_attack'] != null) {
         const perfection = getIv(poke['individual_attack'], poke['individual_defense'], poke['individual_stamina'])
-        const level = getPokemonLevel(poke['cp_multiplier'])
-
         hasHighIV = notifiedMinPerfection > 0 && perfection >= notifiedMinPerfection
-        hasHighLevel = notifiedMinLevel > 0 && level >= notifiedMinLevel
+        const shouldNotifyForIV = (hasHighIV && notifiedMinLevel <= 0)
 
-        hasHighAttributes = (hasHighIV && !(notifiedMinLevel > 0)) || (hasHighLevel && !(notifiedMinPerfection > 0)) || hasHighLevel && hasHighIV
+        hasHighAttributes = shouldNotifyForIV
     }
 
-    return hasHighIV
+    // Or notify for level. If IV filter is enabled, this is an AND relation.
+    if (poke['cp_multiplier'] !== null) {
+        const level = getPokemonLevel(poke['cp_multiplier'])
+        const hasHighLevel = notifiedMinLevel > 0 && level >= notifiedMinLevel
+        const shouldNotifyForLevel = (hasHighLevel && (hasHighIV || notifiedMinPerfection <= 0))
+
+        hasHighAttributes = hasHighAttributes || shouldNotifyForLevel
+    }
+
+    return hasHighAttributes
 }
 
 function isNotifyPoke(poke) {
@@ -1591,8 +1598,9 @@ function clearStaleMarkers() {
         const excludedRarity = excludedRaritiesList[excludedRarityOption]
 		const pokemonRarity = getPokemonRarity(pokemon['pokemon_id'])
         const isRarityExcluded = excludedRarity.indexOf(pokemonRarity) !== -1
-		
-        if (isPokeExpired || isPokeExcluded || isRarityExcluded) {
+	const isNotifyPkmn = isNotifyPoke(pokemon)
+
+        if (isPokeExpired || (isPokeExcluded && !isNotifyPkmn) || (isRarityExcluded && !isNotifyPkmn)) {		
             const oldMarker = pokemon.marker
 			const isPokeExcludedByRarity = excludedPokemonByRarity.indexOf(pokemonId) !== -1
 			
@@ -1703,6 +1711,7 @@ function loadRawData() {
     var loadWeather = Store.get('showWeatherCells')
     var loadS2Cells = Store.get('showS2Cells')
     var loadWeatherAlerts = Store.get('showWeatherAlerts')
+    var prionotifyactiv = Store.get('prioNotify')
 
     var bounds = map.getBounds()
     var swPoint = bounds.getSouthWest()
@@ -1741,7 +1750,8 @@ function loadRawData() {
             'oNeLat': oNeLat,
             'oNeLng': oNeLng,
             'reids': String(isShowAllZoom() ? excludedPokemon :  reincludedPokemon),
-            'eids': String(getExcludedPokemon())
+            'eids': String(getExcludedPokemon()),
+            'prionotify': prionotifyactiv
         },
         dataType: 'json',
         cache: false,
@@ -1861,12 +1871,14 @@ function processPokemon(item) {
     const pokemonRarity = getPokemonRarity(item['pokemon_id'])
     const isRarityExcluded = (excludedRarity.indexOf(pokemonRarity) !== -1)
     const isPokeExcludedByRarity = excludedPokemonByRarity.indexOf(item['pokemon_id']) !== -1
-	
+    const isNotifyPkmn = isNotifyPoke(item)
+
+    var prionotifyactiv = Store.get('prioNotify')
     var oldMarker = null
     var newMarker = null
 
-    if (!(item['encounter_id'] in mapData.pokemons) &&
-         !isPokeExcluded && !isRarityExcluded  && isPokeAlive) {
+    if ((!(item['encounter_id'] in mapData.pokemons) &&
+         !isPokeExcluded && !isRarityExcluded  && isPokeAlive) || (!(item['encounter_id'] in mapData.pokemons) && isNotifyPkmn && prionotifyactiv)) {
     // Add marker to map and item to dict.
         const isNotifyPkmn = isNotifyPoke(item)
         if (!item.hidden && (!Store.get('hideNotNotified') || isNotifyPkmn)) {
@@ -1987,37 +1999,37 @@ function processGym(i, item) {
         }
     }
 
-     if (Store.get('showParkGymsOnly')) {
+    if (Store.get('showParkGymsOnly')) {
         if (!item.park) {
             removeGymFromMap(item['gym_id'])
             return true
         }
     }
-    
+
     if (!Store.get('showGyms')) {
         if (Store.get('showRaids') && !isValidRaid(item.raid)) {
             removeGymFromMap(item['gym_id'])
             return true
         }
+	}
 
-        if (Store.get('showParkRaidsOnly')) {
-            if (!item.park) {
-                removeGymFromMap(item['gym_id'])
-                return true
-            }
+    if (Store.get('showParkRaidsOnly')) {
+        if (!item.park) {
+            removeGymFromMap(item['gym_id'])
+            return true
         }
-        
-        if (Store.get('showActiveRaidsOnly')) {
-            if (!isOngoingRaid(item.raid)) {
-                removeGymFromMap(item['gym_id'])
-                return true
-            }
+    }
+
+    if (Store.get('showActiveRaidsOnly')) {
+        if (!isOngoingRaid(item.raid)) {
+            removeGymFromMap(item['gym_id'])
+            return true
         }
+    }
 
         if (raidLevel > Store.get('showRaidMaxLevel') || raidLevel < Store.get('showRaidMinLevel')) {
             removeGymFromMap(item['gym_id'])
             return true
-        }
     }
 
     if (Store.get('showTeamGymsOnly') && Store.get('showTeamGymsOnly') !== item.team_id) {
@@ -2735,7 +2747,7 @@ $(function () {
         lastgyms = false
         updateMap()
     })
-
+    
     $switchParkGymsOnly = $('#park-gyms-only-switch')
 
     $switchParkGymsOnly.on('change', function () {
@@ -2751,7 +2763,7 @@ $(function () {
         lastgyms = false
         updateMap()
     })
-    
+
     $switchActiveRaidGymsOnly = $('#raid-active-gym-switch')
 
     $switchActiveRaidGymsOnly.on('change', function () {
@@ -3270,6 +3282,11 @@ $(function () {
 
     $('#bounce-switch').change(function () {
         Store.set('isBounceDisabled', this.checked)
+        location.reload()
+    })
+
+    $('#prio-notify-switch').change(function () {
+        Store.set('prioNotify', this.checked)
         location.reload()
     })
 
