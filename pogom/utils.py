@@ -554,6 +554,8 @@ def get_args():
                         help='Directory pointing to optional PogoAssets root directory.')
     parser.add_argument('-uas', '--user-auth-service', default=None,
                         help='Force end users to auth to an external service.')
+    parser.add_argument('-skey', '--secret-key', default='SECRET_KEY',
+                        help='Secret Key to encrypt session cookies. Use a secure string.')
     parser.add_argument('-uascid', '--uas-client-id', default=None,
                         help='Client ID for user external authentication.')
     parser.add_argument('-uascs', '--uas-client-secret', default=None,
@@ -1416,7 +1418,7 @@ def get_debug_dump_link():
     # Upload to hasteb.in.
     return upload_to_hastebin(result)
 
- 
+
 def get_pokemon_rarity(total_spawns_all, total_spawns_pokemon):
     spawn_group = 'Common'
 
@@ -1444,35 +1446,35 @@ def dynamic_rarity_refresher():
     args = get_args()
     hours = args.rarity_hours
     root_path = args.root_path
- 
+
     rarities_path = os.path.join(root_path, 'static/dist/data/rarity.json')
     update_frequency_mins = args.rarity_update_frequency
     refresh_time_sec = update_frequency_mins * 60
- 
+
     while True:
         log.info('Updating dynamic rarity...')
- 
+
         start = default_timer()
         db_rarities = Pokemon.get_spawn_counts(hours)
         total = db_rarities['total']
         pokemon = db_rarities['pokemon']
- 
+
         # Store as an easy lookup table for front-end.
         rarities = {}
- 
+
         for poke in pokemon:
             rarities[poke['pokemon_id']] = get_pokemon_rarity(total,
                                                                 poke['count'])
- 
+
         # Save to file.
         with open(rarities_path, 'w') as outfile:
             json.dump(rarities, outfile)
- 
+
         duration = default_timer() - start
         log.info('Updated dynamic rarity. It took %.2fs for %d entries.',
                     duration,
                     total)
- 
+
         # Wait x seconds before next refresh.
         log.debug('Waiting %d minutes before next dynamic rarity update.',
                     refresh_time_sec / 60)
@@ -1488,4 +1490,4 @@ def peewee_attr_to_col(cls, field):
     else:
         field_column = field
 
-    return field_column    
+    return field_column

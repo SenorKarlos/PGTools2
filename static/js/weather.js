@@ -253,9 +253,6 @@ function updateMainCellWeather() {
         windIcon.setAttribute('style', 'height: 25px; vertical-align: middle;')
         // Make It Happen
         $weatherInfo.appendChild(weathericon)
-        $weatherInfo.appendChild(weathertext)
-        $weatherInfo.appendChild(windIcon)
-        $weatherInfo.appendChild(windtext)
     }
 }
 

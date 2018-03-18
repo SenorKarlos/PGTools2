@@ -7,6 +7,8 @@ import logging
 import time
 import re
 import ssl
+from datetime import timedelta
+
 import requests
 
 from distutils.version import StrictVersion
@@ -321,7 +323,7 @@ def main():
     # Let's not forget to run Grunt / Only needed when running with webserver.
     if not args.no_server and not validate_assets(args):
         sys.exit(1)
- 
+
     if args.no_version_check and not args.only_server:
         log.warning('You are running RocketMap in No Version Check mode. '
                     "If you don't know what you're doing, this mode "
@@ -366,9 +368,12 @@ def main():
         app = Pogom(__name__,
                     root_path=os.path.dirname(
                               os.path.abspath(__file__)).decode('utf8'))
+        app.secret_key = args.secret_key
         app.before_request(app.validate_request)
+        app.before_first_request(app.make_session_permanent)
+        app.permanent_session_lifetime = timedelta(days=7)
         app.set_current_location(position)
-        
+
     db = startup_db(app, args.clear_db)
 
 
