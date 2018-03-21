@@ -605,6 +605,11 @@ def get_args():
                               ' should be updated. Only works if at least one instance use -Rf' +
                               ' Default: 5.'),
                         type=float, default=5)
+    parser.add_argument('-Rfn', '--rarity-filename', type=str,
+                        help=('Filename of rarity json for different databases (without .json)' +
+                              'Default: rarity'),
+                        default='rarity')
+
     statusp = parser.add_argument_group('Status Page')
     statusp.add_argument('-SPp', '--status-page-password', default=None,
                          help='Set the status page password.')
@@ -1480,7 +1485,9 @@ def dynamic_rarity_refresher(db_updates_queue):
     hours = args.rarity_hours
     root_path = args.root_path
 
-    rarities_path = os.path.join(root_path, 'static/dist/data/rarity.json')
+ 
+    rarities_path = os.path.join(root_path, 'static/dist/data/' + args.rarity_filename + '.json')
+
     update_frequency_mins = args.rarity_update_frequency
     refresh_time_sec = update_frequency_mins * 60
 

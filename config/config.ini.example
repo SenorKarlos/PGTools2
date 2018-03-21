@@ -101,6 +101,8 @@
 #pokestop-spinning              # Spin Pokestops with "50%" Chance (default=False)
 #account-max-spins:             # Maximum number of Pokestop spins per hour (default=20)
 #on-demand_timeout:             # Pause searching while web UI is inactive for this timeout (in seconds). (default=0)
+#ignorelist-file                # File containing a list of Pokemon IDs to ignore, one line per ID. Spawnpoints will be saved,
+                                # but ignored Pokemon won't be encountered, sent to webhooks or saved to the DB.
 
 
 # Account rotation
@@ -143,6 +145,9 @@
 #rarity-hours:                  # Number of hours of Pokémon data to use to calculate dynamic rarity, decimals allowed. 0 to use all data. (default=48.0)
 #rarity-update-frequency:       # How often (in minutes) the dynamic rarity should be updated. decimals allowed. 0 to disable. (default=0)
 #rarity-cache-timer             # How often (in minutes) the dynamic rarity cache should be updated. Only works if at least one instance use -Rf! (default=5)
+#rarity-filename:               # Name of the JSON File for dynamic rarity. Using two different RM Databases with two instances out of the same folter. Default (if empty): rarity
+
+
 
 
 # Proxy settings
