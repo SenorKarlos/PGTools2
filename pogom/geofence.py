@@ -72,10 +72,18 @@ class Geofences:
         return False
 
     def _in_area(self, coordinate, area):
-        if args.spawnpoint_scanning:
+        if 'lat' in coordinate:
+            # Coordinates are in a dict lat/lng.
             point = {'lat': coordinate['lat'], 'lon': coordinate['lng']}
+        elif 'latitude' in coordinate:
+            # Coordinates are in a dict latitude/longitude.
+            point = {
+                'lat': coordinate['latitude'],
+                'lon': coordinate['longitude']
+            }
         else:
-            point = {'lat': coordinate[0], 'lon': coordinate[1]}
+            # Assume coordinate is a tuple/list.
+			point = {'lat': coordinate[0], 'lon': coordinate[1]}
         polygon = area['polygon']
         if self.use_matplotlib:
             return self.is_point_in_polygon_matplotlib(point, polygon)
