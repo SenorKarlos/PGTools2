@@ -627,7 +627,6 @@ function scout(encounterId) { // eslint-disable-line no-unused-vars
 function pokemonLabel(item) {
     const pokemonRarity = getPokemonRarity(item['pokemon_id'])
     var name = item['pokemon_name']
-    
     var generation = item['pokemon_gen']
     var rarityDisplay = pokemonRarity ? '(' + pokemonRarity + ')' : ''
     var types = item['pokemon_types']
