@@ -1047,6 +1047,7 @@ def get_pokemon_id(pokemon_name):
 def get_pokemon_name(pokemon_id):
     return i8ln(get_pokemon_data(pokemon_id)['name'])
 
+
 def get_pokemon_gen(pokemon_id):
     pokemon_gen = '?'
 
@@ -1064,6 +1065,7 @@ def get_pokemon_gen(pokemon_id):
         pokemon_gen = ' 6'
 
     return pokemon_gen
+
 
 def get_pokemon_types(pokemon_id):
     pokemon_types = get_pokemon_data(pokemon_id)['types']
