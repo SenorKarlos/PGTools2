@@ -52,9 +52,8 @@ if not (args.verbose):
     console.setLevel(logging.INFO)
 
 formatter = ColoredFormatter(
-    #'%(asctime)s [%(threadName)16s][%(levelname)8s] %(message)s',
-
-    '%(log_color)s [%(asctime)s] [%(threadName)16s] [%(module)14s] [%(levelname)8s] %(message)s',
+    '%(log_color)s [%(asctime)s] [%(threadName)16s] [%(module)14s]' +
+    ' [%(levelname)8s] %(message)s',
     datefmt='%m-%d %H:%M:%S',
     reset=True,
     log_colors={
@@ -270,6 +269,7 @@ def extract_coordinates(location):
         sys.exit()
     return position
 
+
 def main():
     # Patch threading to make exceptions catchable.
     install_thread_excepthook()
@@ -292,16 +292,19 @@ def main():
 
     # Initialize Mr. Mime library
     mrmime_cfg = {
-        # We don't want exceptions on captchas because we handle them differently.
+        # We don't want exceptions on captchas because
+        # we handle them differently.
         'exception_on_captcha': False,
         # MrMime shouldn't jitter
         'jitter_gmo': False,
         'pgpool_system_id': args.status_name
     }
-    # Don't clear PGPool URL if it's not given in config but set in MrMime config JSON
+    # Don't clear PGPool URL if it's not given in config
+    # but set in MrMime config JSON
     if args.pgpool_url:
         mrmime_cfg['pgpool_url'] = args.pgpool_url
-    mrmime_config_file = os.path.join(os.path.dirname(__file__), 'config/mrmime_config.json')
+    mrmime_config_file = os.path.join(os.path.dirname(__file__),
+                                      'config/mrmime_config.json')
     init_mr_mime(config_file=mrmime_config_file, user_cfg=mrmime_cfg)
 
     # Abort if only-server and no-server are used together
@@ -321,14 +324,13 @@ def main():
     # Let's not forget to run Grunt / Only needed when running with webserver.
     if not args.no_server and not validate_assets(args):
         sys.exit(1)
- 
+
     if args.no_version_check and not args.only_server:
         log.warning('You are running RocketMap in No Version Check mode. '
                     "If you don't know what you're doing, this mode "
                     'can have negative consequences, and you will not '
                     'receive support running in NoVC mode. '
                     'You have been warned.')
-
 
     position = extract_coordinates(args.location)
     # Use the latitude and longitude to get the local altitude from Google.
@@ -368,9 +370,8 @@ def main():
                               os.path.abspath(__file__)).decode('utf8'))
         app.before_request(app.validate_request)
         app.set_current_location(position)
-        
-    db = startup_db(app, args.clear_db)
 
+    db = startup_db(app, args.clear_db)
 
     # Control the search status (running or not) across threads.
     control_flags = {
@@ -405,7 +406,7 @@ def main():
         t.start()
 
     # Database cleaner; really only need one ever.
-    if args.enable_clean:
+    if args.db_cleanup:
         t = Thread(target=clean_db_loop, name='db-cleaner', args=(args,))
         t.daemon = True
         t.start()
@@ -466,7 +467,6 @@ def main():
                 'Existing player locale has been retrieved from the DB.')
 
         # Gather the Pokemon!
-
 
         argset = (args, new_location_queue, control_flags,
                   heartbeat, db_updates_queue, wh_updates_queue)
