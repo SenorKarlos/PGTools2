@@ -1165,7 +1165,7 @@ function getPokemonRarity(pokemonId) {
         return i8ln(pokemonRarities[pokemonId])
     }
 
-    return 'New Spawn'
+    return i8ln('New Spawn')
 }
 
 function getGoogleSprite(index, sprite, displayHeight) {
