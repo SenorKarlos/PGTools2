@@ -1168,7 +1168,7 @@ function getPokemonRarity(pokemonId) {
     return i8ln('New Spawn')
 }
 
-function getPokemonRarity_noi8(pokemonId) {
+function getPokemonRarityNoi8(pokemonId) {
     if (pokemonRarities.hasOwnProperty(pokemonId)) {
         return pokemonRarities[pokemonId]
     }
@@ -1219,7 +1219,7 @@ function setupPokemonMarkerDetails(item, map, scaleByRarity = true, isNotifyPkmn
             'legendary': 50
         }
 
-        const pokemonRarity = getPokemonRarity_noi8(item['pokemon_id']).toLowerCase()
+        const pokemonRarity = getPokemonRarityNoi8(item['pokemon_id']).toLowerCase()
         if (rarityValues.hasOwnProperty(pokemonRarity)) {
             rarityValue = rarityValues[pokemonRarity]
         }
