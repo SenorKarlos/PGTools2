@@ -419,16 +419,6 @@
               </label>
             </div>
               {% endif %}
-	    <div class="form-control switch-container">
-                <h3>Prio Notify</h3>
-                <div class="onoffswitch">
-                  <input id="prio-notify-switch" type="checkbox" name="prio-notify-switch" class="onoffswitch-checkbox" checked>
-                  <label class="onoffswitch-label" for="prio-notify-switch">
-                  <span class="switch-label" data-on="On" data-off="Off"></span>
-                  <span class="switch-handle"></span>
-                  </label>
-                </div>
-              </div>
             <div class="form-control switch-container">
               <h3>Hide unnotified pokemon</h3>
               <div class="onoffswitch">
@@ -575,7 +565,6 @@
       var showConfig = {{show|tojson|safe}};
       var showAllZoomLevel = {{showAllZoomLevel}};
       var generateImages = {{generateImages}};
-      var rarityFileName = "{{rarityFileName}}";
     </script>
     <script src="{{ url_for('static', filename='dist/js/app.min.js').lstrip('/') }}"></script>
     <script src="{{ url_for('static', filename='dist/js/map.common.min.js').lstrip('/') }}"></script>
@@ -587,6 +576,6 @@
     <script src="{{ url_for('static', filename='dist/js/stats.min.js').lstrip('/') }}"></script>
     <script src="{{ url_for('static', filename='dist/js/weather.min.js').lstrip('/') }}"></script>
     <script defer src="https://maps.googleapis.com/maps/api/js?key={{ gmaps_key }}&amp;callback=initMap&amp;libraries=places,geometry"></script>
-    <script async src='https://www.google-analytics.com/analytics.js'> </script>
+    <script async src='https://www.google-analytics.com/analytics.js'></script>
   </body>
 </html>

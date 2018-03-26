@@ -1,4 +1,3 @@
-/*global getPokemonRawIconUrl*/
 /* Main stats page */
 var rawDataIsLoading = false
 
@@ -56,11 +55,11 @@ function processSeen(seen) {
         var pokemonItem = seen.pokemon[i]
         var seenPercent = (pokemonItem.count / seen.total) * 100
 
-        var pokemonIcon = generateImages ? `<img class='pokemon_icon' src='${getPokemonRawIconUrl(pokemonItem)}'>` : `<i class="pokemon-sprite n${pokemonItem.pokemon_id}"</i>`
+        var pokemon_icon = generateImages ? `<img class='pokemon_icon' src='${get_pokemon_raw_icon_url(pokemonItem)}'>` : `<i class="pokemon-sprite n${pokemonItem.pokemon_id}"</i>`
         $('#stats_table > tbody')
             .append(`<tr class="status_row">
                         <td class="status_cell">
-                            ${pokemonIcon}
+                            ${pokemon_icon}
                         </td>
                         <td class="status_cell">
                             ${pokemonItem.pokemon_id}                        

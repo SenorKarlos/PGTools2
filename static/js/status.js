@@ -6,11 +6,12 @@ var showInstances = true
 var showWorkers = true
 var hashkeys = {}
 var statshash = 'summarystats'  /* unique statistics worker name */
-var scansSuccess
-var scansFailed
-var scansEmpty
-var scansSkipped
-var captchasCount
+var active
+var success
+var failed
+var empty
+var skipped
+var captcha
 var mainWorkers
 var elapsedTotal
 var elapsedSecs
@@ -184,7 +185,7 @@ function processHashKeys(i, hashkey) {
 }
 
 function parseResult(result) {
-    addTotalStats(result)
+	addTotalStats(result)
     if (showInstances) {
         $.each(result.main_workers, processMainWorker)
     }
@@ -212,11 +213,11 @@ function addStatsWorker(hash) {
 }
 
 function getStats(i, worker) {
-    scansSuccess += worker['success']
-    scansFailed += worker['fail']
-    scansEmpty += worker['empty']
-    scansSkipped += worker['skip']
-    captchasCount += worker['captcha']
+    success += worker['success']
+    failed += worker['fail']
+    empty += worker['empty']
+    skipped += worker['skip']
+    captcha += worker['captcha']
     mainWorkers += 1
 
     elapsedTotal += worker['elapsed']
@@ -226,15 +227,17 @@ function getStats(i, worker) {
 
 function addTotalStats(result) {
     var statmsg, title
-    scansSuccess = 0
-    scansFailed = 0
-    scansEmpty = 0
-    scansSkipped = 0
-    captchasCount = 0
+
+    active = 0
+    success = 0
+    failed = 0
+    empty = 0
+    skipped = 0
+    captcha = 0
     mainWorkers = 0
     elapsedTotal = 0
     elapsedSecs = 0
-    elapsedHours = 0
+	elapsedHours = 0
     successPerHour = 0
     failsPerHour = 0
     emptyPerHour = 0
@@ -246,26 +249,16 @@ function addTotalStats(result) {
     $.each(result.main_workers, getStats)
 
     if ((mainWorkers > 1) || !(showWorkers && showInstances)) {
-        const accountsActive = result.workers.length
-
-        // Calculate the number of idle workers and then busy from that.
-        const accountsIdle = result.workers.reduce((accumulator, account) => {
-            if (account['message'] === 'Nothing to scan.') {
-                accumulator += 1
-            }
-            return accumulator
-        }, 0)
-
-        const accountsBusy = result.workers.length - accountsIdle
+        active += result.workers.length
 
         // Avoid division by zero.
         elapsedSecs = Math.max(elapsedSecs, 1)
 
-        successPerHour = (scansSuccess * 3600 / elapsedSecs) || 0
-        failsPerHour = (scansFailed * 3600 / elapsedSecs) || 0
-        emptyPerHour = (scansEmpty * 3600 / elapsedSecs) || 0
-        skippedPerHour = (scansSkipped * 3600 / elapsedSecs) || 0
-        captchasPerHour = (captchasCount * 3600 / elapsedSecs) || 0
+        successPerHour = (success * 3600 / elapsedSecs) || 0
+        failsPerHour = (failed * 3600 / elapsedSecs) || 0
+        emptyPerHour = (empty * 3600 / elapsedSecs) || 0
+        skippedPerHour = (skipped * 3600 / elapsedSecs) || 0
+        captchasPerHour = (captcha * 3600 / elapsedSecs) || 0
         captchasCost = captchasPerHour * 0.00299
         captchasCostMonthly = captchasCost * 730
 
@@ -273,8 +266,7 @@ function addTotalStats(result) {
             addStatsWorker(statshash)
         }
 
-        statmsg = 'Total active: ' + accountsActive + ', busy: ' + accountsBusy + ', idle: ' + accountsIdle + ' | Success: ' + scansSuccess.toFixed() + ' (' + successPerHour.toFixed(1) + '/hr) | Fails: ' + scansFailed.toFixed() + ' (' + failsPerHour.toFixed(1) + '/hr) | Empties: ' + scansEmpty.toFixed() + ' (' + emptyPerHour.toFixed(1) + '/hr) | Skips: ' + scansSkipped.toFixed() + ' (' + skippedPerHour.toFixed(1) + '/hr) | Captchas: ' + captchasCount.toFixed() + ' (' + captchasPerHour.toFixed(1) + '/hr) ($' + captchasCost.toFixed(2) + '/hr, $' + captchasCostMonthly.toFixed(2) + '/mo) | Elapsed:  ' + elapsedHours.toFixed(1) + 'h<hr />'
-
+        statmsg = 'Total active: ' + active + ' | Success: ' + success.toFixed() + ' (' + successPerHour.toFixed(1) + '/hr) | Fails: ' + failed.toFixed() + ' (' + failsPerHour.toFixed(1) + '/hr) | Empties: ' + empty.toFixed() + ' (' + emptyPerHour.toFixed(1) + '/hr) | Skips: ' + skipped.toFixed() + ' (' + skippedPerHour.toFixed(1) + '/hr) | Captchas: ' + captcha.toFixed() + ' (' + captchasPerHour.toFixed(1) + '/hr) ($' + captchasCost.toFixed(1) + '/hr, $' + captchasCostMonthly.toFixed(1) + '/mo) | Elapsed:  ' + elapsedHours.toFixed(1) + 'h<hr />'
         if (mainWorkers > 1) {
             title = '(Total Statistics across ' + mainWorkers + ' instances)'
         } else {

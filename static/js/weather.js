@@ -1,7 +1,3 @@
- /*global alertTexts map jsts weatherImages weatherNames*/
-/* eslint no-unused-vars: "off" */
-// Globales variables
-
 /**
  * Parses info about weather cell and draws icon
  * @param i index from $.each()
