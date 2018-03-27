@@ -40,8 +40,6 @@ details about what each program actually does.
    .. code-block:: bash
 
       sudo apt-get install -y python python-pip python-dev build-essential git libssl-dev libffi-dev
-      curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
-      sudo apt-get install -y nodejs
       sudo pip install --upgrade pip
 
    Once installed check that you have at least version 2.7 of Python.
@@ -161,8 +159,6 @@ tl;dr Install
 
       #install python
       sudo apt-get install -y python python-pip python-dev build-essential git libssl-dev libffi-dev
-      curl -sL https://deb.nodesource.com/setup_6.x | sudo -E bash -
-      sudo apt-get install -y nodejs
       sudo pip install --upgrade pip
 
       #install MySql
