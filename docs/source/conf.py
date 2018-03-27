@@ -20,8 +20,8 @@
 # -- Project information -----------------------------------------------------
 
 project = u'RM-Alt'
-copyright = u'2018, community-guys'
-author = u'community-guys'
+copyright = u'2018, Community-Guys'
+author = u'Community-Guys'
 
 # The short X.Y version
 version = u''
@@ -74,7 +74,7 @@ pygments_style = 'sphinx'
 # The theme to use for HTML and HTML Help pages.  See the documentation for
 # a list of builtin themes.
 #
-html_theme = 'alabaster'
+html_theme = 'sphinx_rtd_theme'
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
@@ -129,7 +129,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'RM-Alt.tex', u'RM-Alt Documentation',
-     u'community-guys', 'manual'),
+     u'Community-Guys', 'manual'),
 ]
 
 
