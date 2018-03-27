@@ -186,7 +186,7 @@ tl;dr Install
 Adding Accounts into PGPool
 ===========================
 
-   Once PGPool is setup you can load accounts into it.  To lvl0 to lvl29 accounts you should
+   Once PGPool is setup you can load accounts into it.  For lvl0 to lvl29 accounts you should
    create a text file that has all your accounts in it.  It should look something like this:
 
    .. code-block:: bash
@@ -195,7 +195,7 @@ Adding Accounts into PGPool
       accountName2:accountPassword3
       accountName3:accountPassword3
 
-   This doc will assume you have named you filed lowLevel.txt to store all your accounts that are level 0 to
+   This doc will assume you have named the file `lowLevel.txt` to store all your accounts that are level 0 to
    level 29.  You can import your accounts into PGPool by then running:
 
    .. code-block:: bash
@@ -219,7 +219,7 @@ Final Notes
 
    As soon as an account is shadow banned, PGPool will no longer allow that account to be active and will remove it
    from the pool.  This means that you don't need to manually add accounts every few days for scanning.  You simply
-   load in a large amount into the database and let it run until all the accounts are banned.
+   load a large quantity of accounts into the database and let it run until all the accounts are banned.
 
    You can see a detailed output of pgpool by hitting the `enter key` while running pgpool.  It looks something like
    this:
