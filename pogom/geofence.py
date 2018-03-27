@@ -83,7 +83,7 @@ class Geofences:
             }
         else:
             # Assume coordinate is a tuple/list.
-			point = {'lat': coordinate[0], 'lon': coordinate[1]}
+            point = {'lat': coordinate[0], 'lon': coordinate[1]}
         polygon = area['polygon']
         if self.use_matplotlib:
             return self.is_point_in_polygon_matplotlib(point, polygon)

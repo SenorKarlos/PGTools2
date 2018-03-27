@@ -68,7 +68,7 @@ class LocationCluster(object):
 
         return True
 
-		
+
 class SpawnCluster(LocationCluster):
     def __init__(self, spawnpoint):
         LocationCluster.__init__(self, spawnpoint)
