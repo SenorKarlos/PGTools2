@@ -359,7 +359,8 @@ class Pogom(Flask):
                                generateImages=str(args.generate_images).lower(),
                                gmaps_key=args.gmaps_key,
                                lang=args.locale,
-                               show=visibility_flags
+                               show=visibility_flags,
+                               rarityFileName=args.rarity_filename
                                )
 
     def raw_data(self):
@@ -448,21 +449,31 @@ class Pogom(Flask):
 
         if (request.args.get('pokemon', 'true') == 'true' and
                 not args.no_pokemon):
+
+            # Exclude ids of Pokemon that are hidden.
+            eids = []
+            request_eids = request.args.get('eids')
+            if request_eids:
+                eids = {int(i) for i in request_eids.split(',')}
+
             if request.args.get('ids'):
-                ids = [int(x) for x in request.args.get('ids').split(',')]
+                request_ids = request.args.get('ids').split(',')
+                ids = [int(x) for x in request_ids if int(x) not in eids]
                 d['pokemons'] = convert_pokemon_list(
                     Pokemon.get_active_by_id(ids, swLat, swLng, neLat, neLng))
             elif lastpokemon != 'true':
                 # If this is first request since switch on, load
                 # all pokemon on screen.
                 d['pokemons'] = convert_pokemon_list(
-                    Pokemon.get_active(swLat, swLng, neLat, neLng))
+                    Pokemon.get_active(
+                        swLat, swLng, neLat, neLng, exclude=eids))
             else:
                 # If map is already populated only request modified Pokemon
                 # since last request time.
                 d['pokemons'] = convert_pokemon_list(
                     Pokemon.get_active(
-                        swLat, swLng, neLat, neLng, timestamp=timestamp))
+                        swLat, swLng, neLat, neLng,
+                        timestamp=timestamp, exclude=eids))
                 if newArea:
                     # If screen is moved add newly uncovered Pokemon to the
                     # ones that were modified since last request time.
@@ -473,22 +484,18 @@ class Pogom(Flask):
                                 swLng,
                                 neLat,
                                 neLng,
+                                exclude=eids,
                                 oSwLat=oSwLat,
                                 oSwLng=oSwLng,
                                 oNeLat=oNeLat,
                                 oNeLng=oNeLng)))
 
-            if request.args.get('eids'):
-                # Exclude id's of pokemon that are hidden.
-                eids = [int(x) for x in request.args.get('eids').split(',')]
-                d['pokemons'] = [
-                    x for x in d['pokemons'] if x['pokemon_id'] not in eids]
-
+        if request.args.get('prionotify') == 'false':
             if request.args.get('reids'):
                 reids = [int(x) for x in request.args.get('reids').split(',')]
                 d['pokemons'] = d['pokemons'] + (
                     convert_pokemon_list(
-                        Pokemon.get_active_by_id(reids, swLat, swLng, neLat, 
+                        Pokemon.get_active_by_id(reids, swLat, swLng, neLat,
                                             neLng)))
                 d['reids'] = reids
 
@@ -569,8 +576,14 @@ class Pogom(Flask):
                 d['error'] = 'Access denied'
             elif (request.args.get('password', None) ==
                   args.status_page_password):
-                d['main_workers'] = MainWorker.get_all()
-                d['workers'] = WorkerStatus.get_all()
+                max_status_age = args.status_page_filter
+                if max_status_age > 0:
+                    d['main_workers'] = MainWorker.get_recent(max_status_age)
+                    d['workers'] = WorkerStatus.get_recent(max_status_age)
+                else:
+                    d['main_workers'] = MainWorker.get_all()
+                    d['workers'] = WorkerStatus.get_all()
+
 
         if request.args.get('weather', 'false') == 'true':
             d['weather'] = get_weather_cells(swLat, swLng, neLat, neLng)
@@ -704,8 +717,13 @@ class Pogom(Flask):
 
         if request.form.get('password', None) == args.status_page_password:
             d['login'] = 'ok'
-            d['main_workers'] = MainWorker.get_all()
-            d['workers'] = WorkerStatus.get_all()
+            max_status_age = args.status_page_filter
+            if max_status_age > 0:
+                d['main_workers'] = MainWorker.get_recent(max_status_age)
+                d['workers'] = WorkerStatus.get_recent(max_status_age)
+            else:
+                d['main_workers'] = MainWorker.get_all()
+                d['workers'] = WorkerStatus.get_all()
             d['hashkeys'] = HashKeys.get_obfuscated_keys()
         else:
             d['login'] = 'failed'

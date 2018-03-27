@@ -858,6 +858,10 @@ var StoreOptions = {
         default: [],
         type: StoreTypes.JSON
     },
+    'prioNotify': {
+        default: false,
+        type: StoreTypes.Boolean
+    },
     'remember_select_rarity_notify': {
         default: [], // Common, Uncommon, Rare, Very Rare, Ultra Rare
         type: StoreTypes.JSON
@@ -1147,7 +1151,7 @@ function getPokemonIcon(item, sprite, displayHeight) {
 var pokemonRarities = {}
 
 function updatePokemonRarities() {
-    $.getJSON('static/dist/data/rarity.json').done(function (data) {
+    $.getJSON('static/dist/data/' + rarityFileName + '.json').done(function (data) {
         pokemonRarities = data
     }).fail(function () {
         // Could be disabled/removed.
