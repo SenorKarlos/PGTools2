@@ -1173,7 +1173,7 @@ function getPokemonRarityNoi8(pokemonId) {
         return pokemonRarities[pokemonId]
     }
 
-    return ''
+    return 'New Spawn'
 }
 
 function getGoogleSprite(index, sprite, displayHeight) {
