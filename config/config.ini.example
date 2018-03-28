@@ -63,6 +63,17 @@
 #db-threads:                    # Number of db threads; increase if the db queue falls behind. (default=1)
 
 
+#Database cleanup
+#################
+
+#db-cleanup                     # Enable regular database cleanup thread.
+#db-cleanup-worker              # Clear worker status from database after X minutes of inactivity. Default: 30, 0 to disable.
+#db-cleanup-pokemon             # Clear pokemon from database X hours after they disappeared. Default: 0, 0 to disable.
+#db-cleanup-gym                 # Clear gym details from database X hours after last gym scan. Default: 8, 0 to disable.
+#db-cleanup-spawnpoint          # Clear spawnpoint from database X hours after last valid scan. Default: 720, 0 to disable.
+#db-cleanup-forts               # Clear gyms and pokestops from database X hours after last valid scan. Default: 0, 0 to disable.
+
+
 # Scan method (speed-scan preferable, (default is hex-scan)
 #############
 
@@ -145,7 +156,6 @@
 #rarity-hours:                  # Number of hours of Pokémon data to use to calculate dynamic rarity, decimals allowed. 0 to use all data. (default=48.0)
 #rarity-update-frequency:       # How often (in minutes) the dynamic rarity should be updated. decimals allowed. 0 to disable. (default=0)
 #rarity-filename:               # Name of the JSON File for dynamic rarity. Using two different RM Databases with two instances out of the same folter. Default (if empty): rarity
-
 
 
 # Proxy settings
