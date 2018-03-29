@@ -373,7 +373,7 @@ class Rarity(BaseModel):
         if id in rarity_cache:
             return rarity_cache[id]
         else:
-            return "Ultra Rare"
+            return "New Spawn"
 
 class Pokestop(LatLongModel):
     pokestop_id = Utf8mb4CharField(primary_key=True, max_length=50)
