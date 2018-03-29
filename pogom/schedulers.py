@@ -49,6 +49,8 @@ import logging
 import math
 import time
 import sys
+import os
+
 from timeit import default_timer
 from threading import Lock
 from copy import deepcopy
@@ -278,7 +280,7 @@ class HexSearch(BaseScheduler):
             if not results:
                 log.error('No cells regarded as valid for desired scan area. '
                           'Check your provided geofences. Aborting.')
-                sys.exit()
+                os._exit(1)
 
         # Add the required appear and disappear times.
         locationsZeroed = []
@@ -402,11 +404,11 @@ class SpawnScan(BaseScheduler):
             if not self.locations:
                 log.error('No cells regarded as valid for desired scan area. '
                           'Check your provided geofences. Aborting.')
-                sys.exit()
+                os._exit(1)
 
         # Well shit...
             if not self.locations:
-               raise Exception('No available spawn points!')
+                raise Exception('No available spawn points!')
 
         log.info('Tracking a total of %d spawn points.', len(self.locations))
 
@@ -415,8 +417,7 @@ class SpawnScan(BaseScheduler):
             self.locations = cluster_spawnpoints(
                 self.locations, self.cluster_range, self.args.ss_cluster_time)
             log.info('Compressed spawn points into %d clusters.',
-                    len(self.locations))
-
+                     len(self.locations))
 
         # Put the spawn points in order of next appearance time.
         self.locations.sort(key=itemgetter('appears'))
@@ -427,7 +428,7 @@ class SpawnScan(BaseScheduler):
         for step, sp in enumerate(self.locations, 1):
             altitude = get_altitude(self.args, [sp['lat'], sp['lng']])
             retset.append((step, (sp['lat'], sp['lng'], altitude),
-                            sp['appears'], sp['leaves']))
+                           sp['appears'], sp['leaves']))
 
         return retset
 
@@ -464,7 +465,7 @@ class SpawnScan(BaseScheduler):
             last_action = status['last_scan_date']
             meters = distance(step_location, worker_loc)
             wait = int(max(meters / self.args.kph * 3.6
-                            - (now_date - last_action).total_seconds(), 0))
+                           - (now_date - last_action).total_seconds(), 0))
             if wait > 0:
                 wait_msg = 'Moving {}m to step {}, arriving in {}s.'.format(
                     int(meters), step, wait)
@@ -480,23 +481,23 @@ class SpawnScan(BaseScheduler):
                 step_location[0], step_location[1], step_location[2]),
             'invalid': ('Invalid response at {:6f},{:6f}, ' +
                         'abandoning location.').format(step_location[0],
-                                                        step_location[1])
+                                                       step_location[1])
         }
 
         if remain < self.args.min_seconds_left:
             messages['wait'] = ('Unable to reach {:6f},{:6f}, under the ' +
                                 'speed limit.').format(step_location[0],
-                                                        step_location[1])
+                                                       step_location[1])
             # Future improvement: insert the item back into the queue, hoping
             # that another worker may reach the scan location in time.
             return -1, 0, 0, 0, messages, 0
 
         return step, step_location, appears, leaves, messages, wait
 
+
 # SpeedScan is a complete search method that initially does a spawnpoint
 # search in each scan location by scanning five two-minute bands within
 # an hour and ten minute intervals between bands.
-
 # After finishing the spawnpoint search or if timing isn't right for any of
 # the remaining search bands, workers will search the nearest scan location
 # that has a new spawn.
@@ -614,7 +615,7 @@ class SpeedScan(HexSearch):
             if not results:
                 log.error('No cells regarded as valid for desired scan area. '
                           'Check your provided geofences. Aborting.')
-                sys.exit()
+                os._exit(1)
 
         generated_locations = []
         for step, location in enumerate(results):
