@@ -1278,9 +1278,7 @@ function isNotifyPerfectionPoke(poke) {
             hasHighAttributes = hasHighAttributes || MedalMagikarp
         }
     }
-    }
 
-    if (poke['cp_multiplier'] !== null) {
     if (Store.get('showMedalRattata') && poke['pokemon_id']==19) {
 
         var baseHeight = 0.30
