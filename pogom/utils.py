@@ -617,7 +617,7 @@ def get_args():
                         type=float, default=0)
     parser.add_argument('-Rct', '--rarity-cache-timer',
                         help=('How often (in minutes) the drc' +
-                              ' should be updated. Only works if at least' + 
+                              ' should be updated. Only works if at least' +
                               ' one instance use -Rf' +
                               ' Default: 5.'),
                         type=float, default=5)

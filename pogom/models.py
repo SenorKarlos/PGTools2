@@ -2381,9 +2381,9 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
 
                     current_weather = weather[s2_cell_id]['gameplay_weather'] \
                         if weather and s2_cell_id in weather else None
-                    
+
                     # Get Pokemon Rarity
-                    pokemon_rarity_wh =  Rarity.rarity_by_id(pokemon_id)
+                    pokemon_rarity_wh = Rarity.rarity_by_id(pokemon_id)
 
                     wh_poke = pokemon[p.encounter_id].copy()
                     wh_poke.update({
@@ -3413,7 +3413,7 @@ def bulk_upsert(cls, data, db):
                     placeholders=', '.join(placeholders),
                     assignments=', '.join(assignments)
                 )
-                
+
                 cursor.executemany(formatted_query, batch)
 
                 db.execute_sql('SET FOREIGN_KEY_CHECKS=1;')
@@ -3457,8 +3457,9 @@ def rarity_cache_update():
 
         # Wait x seconds before next refresh.
         log.debug('Waiting %d minutes before next drc update.',
-                   refresh_time_sec / 60)
+                  refresh_time_sec / 60)
         time.sleep(refresh_time_sec)
+
 
 def create_tables(db):
     tables = [Pokemon, Pokestop, Gym, Raid, ScannedLocation, GymDetails,
@@ -3938,8 +3939,6 @@ def database_migrate(db, old_ver):
         db.execute_sql('ALTER TABLE `spawnpoint` '
                        'ADD CONSTRAINT CONSTRAINT_4 CHECK ' +
                        '(`latest_seen` <= 3600);')
-
-
 
     # Always log that we're done.
     log.info('Schema upgrade complete.')
