@@ -2045,7 +2045,6 @@ def parse_map(args, map_dict, scan_coords, scan_location, db_update_queue,
     display_weather = {}
     gameplay_weather = {}
     weather = {}
-    rarity = {}
 
     # Consolidate the individual lists in each cell into two lists of Pokemon
     # and a list of forts.
