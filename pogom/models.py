@@ -52,8 +52,10 @@ cache = TTLCache(maxsize=100, ttl=60 * 5)
 
 db_schema_version = 29
 
-rarity_list = {'Common': 0, 'Uncommon': 1, 'Rare': 2, 'Very Rare': 3, 'Ultra Rare': 4, 'New Spawn': 5}
+rarity_list = {'Common': 0, 'Uncommon': 1, 'Rare': 2, 'Very Rare': 3,
+               'Ultra Rare': 4, 'New Spawn': 5}
 rarity_cache = {}
+
 
 class MyRetryDB(RetryOperationalError, PooledMySQLDatabase):
     pass
@@ -347,25 +349,24 @@ class Pokemon(LatLongModel):
 
         return list(itertools.chain(*query))
 
-class Rarity(BaseModel):
-    pokemon_id = SmallIntegerField(index=True,primary_key=True)
-    rarity = CharField(null=True)
 
+class Rarity(BaseModel):
+    pokemon_id = SmallIntegerField(index=True, primary_key=True)
+    rarity = CharField(null=True)
 
     @staticmethod
     def update_pokemon_rarity_db(rarity, db_update_queue):
 
         rarities_details = {}
-        for key,val in rarity.items():
+        for key, val in rarity.items():
             rarities_details[key] = {
-            'pokemon_id': key,
-            'rarity': val
-        }
-
+             'pokemon_id': key,
+             'rarity': val
+            }
 
         db_update_queue.put((Rarity, rarities_details))
 
-        return 
+        return
 
     @staticmethod
     def rarity_by_id(id):
@@ -374,6 +375,7 @@ class Rarity(BaseModel):
             return rarity_cache[id]
         else:
             return "New Spawn"
+
 
 class Pokestop(LatLongModel):
     pokestop_id = Utf8mb4CharField(primary_key=True, max_length=50)
@@ -3435,6 +3437,7 @@ def bulk_upsert(cls, data, db):
 
             i += step
 
+
 def rarity_cache_update():
 
     update_frequency_mins = args.rarity_cache_timer
@@ -3444,17 +3447,17 @@ def rarity_cache_update():
         log.info('Updating dynamic rarity cache...')
 
         query = (Rarity
-                     .select(Rarity.pokemon_id, Rarity.rarity)
-                     .dicts())
+                 .select(Rarity.pokemon_id, Rarity.rarity)
+                 .dicts())
 
         for poke in query:
             rarity_cache[poke['pokemon_id']] = poke['rarity']
 
         log.info('Updated dynamic rarity cache.')
- 
+
         # Wait x seconds before next refresh.
-        log.debug('Waiting %d minutes before next dynamic rarity cache update.',
-                    refresh_time_sec / 60)
+        log.debug('Waiting %d minutes before next drc update.',
+                   refresh_time_sec / 60)
         time.sleep(refresh_time_sec)
 
 def create_tables(db):

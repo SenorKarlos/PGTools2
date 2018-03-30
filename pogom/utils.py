@@ -616,8 +616,9 @@ def get_args():
                               ' Default: 0. 0 to disable.'),
                         type=float, default=0)
     parser.add_argument('-Rct', '--rarity-cache-timer',
-                        help=('How often (in minutes) the dynamic rarity cache' +
-                              ' should be updated. Only works if at least one instance use -Rf' +
+                        help=('How often (in minutes) the drc' +
+                              ' should be updated. Only works if at least' + 
+                              ' one instance use -Rf' +
                               ' Default: 5.'),
                         type=float, default=5)
     parser.add_argument('-Rfn', '--rarity-filename', type=str,
@@ -1556,8 +1557,7 @@ def dynamic_rarity_refresher(db_updates_queue):
             rarities[poke['pokemon_id']] = get_pokemon_rarity(total,
                                                               poke['count'])
 
-
-        Rarity.update_pokemon_rarity_db(rarities, db_updates_queue) 
+        Rarity.update_pokemon_rarity_db(rarities, db_updates_queue)
 
         # Save to file.
         with open(rarities_path, 'w') as outfile:
