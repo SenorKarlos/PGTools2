@@ -1278,11 +1278,13 @@ function playPokemonSound(pokemonID, cryFileTypes) {
     }
 }
 
-
 function isNotifyPerfectionPoke(poke) {
 
     var hasHighAttributes = false
     var hasHighIV = false
+    var baseHeight = 0
+    var baseWeight = 0
+    var ration = 0
 
     // Notify for IV.
     if (poke['individual_attack'] != null) {
@@ -1303,33 +1305,26 @@ function isNotifyPerfectionPoke(poke) {
     }
 
     if (poke['cp_multiplier'] !== null) {
-    if (Store.get('showMedalMagikarp') && poke['pokemon_id']==129) {
-
-        var baseHeight = 0.90
-        var baseWeight = 10.00
-
-        var MedalMagikarp = false
-        var ratio = sizeRatio(poke['height'], poke['weight'], baseHeight, baseWeight)
-
-        if (ratio > 2.5) {
-            MedalMagikarp = true
-            hasHighAttributes = hasHighAttributes || MedalMagikarp
+        if (Store.get('showMedalMagikarp') && poke['pokemon_id'] === 129) {
+            baseHeight = 0.90
+            baseWeight = 10.00
+            var MedalMagikarp = false
+            ratio = sizeRatio(poke['height'], poke['weight'], baseHeight, baseWeight)
+            if (ratio > 2.5) {
+                MedalMagikarp = true
+                hasHighAttributes = hasHighAttributes || MedalMagikarp
+            }
         }
-    }
-
-    if (Store.get('showMedalRattata') && poke['pokemon_id']==19) {
-
-        var baseHeight = 0.30
-        var baseWeight = 3.50
-
-        var MedalRattata = false
-        var ratio = sizeRatio(poke['height'], poke['weight'], baseHeight, baseWeight)
-
-        if (ratio < 1.5) {
-            MedalRattata = true
-            hasHighAttributes = hasHighAttributes || MedalRattata
+        if (Store.get('showMedalRattata') && poke['pokemon_id'] === 19) {
+            baseHeight = 0.30
+            baseWeight = 3.50
+            var MedalRattata = false
+            ratio = sizeRatio(poke['height'], poke['weight'], baseHeight, baseWeight)
+            if (ratio < 1.5) {
+                MedalRattata = true
+                hasHighAttributes = hasHighAttributes || MedalRattata
+            }
         }
-    }
     }
 
     return hasHighAttributes
