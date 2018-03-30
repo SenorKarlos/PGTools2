@@ -1279,12 +1279,11 @@ function playPokemonSound(pokemonID, cryFileTypes) {
 }
 
 function isNotifyPerfectionPoke(poke) {
-
     var hasHighAttributes = false
     var hasHighIV = false
     var baseHeight = 0
     var baseWeight = 0
-    var ration = 0
+    var ratio = 0
 
     // Notify for IV.
     if (poke['individual_attack'] != null) {
