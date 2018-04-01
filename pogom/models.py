@@ -52,7 +52,7 @@ cache = TTLCache(maxsize=100, ttl=60 * 5)
 
 db_schema_version = 29
 
-rarity_list = {'New Spawn':0, 'Common': 1, 'Uncommon': 2, 'Rare': 3,
+rarity_list = {'New Spawn': 0, 'Common': 1, 'Uncommon': 2, 'Rare': 3,
                'Very Rare': 4, 'Ultra Rare': 5}
 rarity_cache = {}
 
