@@ -1307,21 +1307,17 @@ function isNotifyPerfectionPoke(poke) {
         if (Store.get('showMedalMagikarp') && poke['pokemon_id'] === 129) {
             baseHeight = 0.90
             baseWeight = 10.00
-            var MedalMagikarp = false
             ratio = sizeRatio(poke['height'], poke['weight'], baseHeight, baseWeight)
             if (ratio > 2.5) {
-                MedalMagikarp = true
-                hasHighAttributes = hasHighAttributes || MedalMagikarp
+                hasHighAttributes = true
             }
         }
         if (Store.get('showMedalRattata') && poke['pokemon_id'] === 19) {
             baseHeight = 0.30
             baseWeight = 3.50
-            var MedalRattata = false
             ratio = sizeRatio(poke['height'], poke['weight'], baseHeight, baseWeight)
             if (ratio < 1.5) {
-                MedalRattata = true
-                hasHighAttributes = hasHighAttributes || MedalRattata
+                hasHighAttributes = true
             }
         }
     }
