@@ -1311,8 +1311,7 @@ function isNotifyPerfectionPoke(poke) {
             if (ratio > 2.5) {
                 hasHighAttributes = true
             }
-        }
-        if (Store.get('showMedalRattata') && poke['pokemon_id'] === 19) {
+        } else if (Store.get('showMedalRattata') && poke['pokemon_id'] === 19) {
             baseHeight = 0.30
             baseWeight = 3.50
             ratio = sizeRatio(poke['height'], poke['weight'], baseHeight, baseWeight)
