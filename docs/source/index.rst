@@ -24,7 +24,12 @@ is needed to get RM-Alt running.
    Install Prerequisite 2 - PGScout <install-pgscout>
    Install RM-Alt <install-rm-alt>
 
+.. toctree::
+   :maxdepth: 2
+   :caption: Extras
+
+   Supervisord <extras/supervisord>
+
 .. _Rocket Map: https://rocketmap.readthedocs.io/en/develop/
 .. _Official GitHub: https://github.com/SenorKarlos/RocketMap
 .. _GitHub Issues: https://github.com/SenorKarlos/RocketMap/issues
-
