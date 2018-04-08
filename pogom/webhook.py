@@ -32,7 +32,6 @@ def send_to_webhooks(args, session, message_frame):
             future = session.post(w, json=message_frame,
                                   timeout=(connect_timeout, read_timeout),
                                   background_callback=__wh_request_completed,
-                                  headers={'Connection': 'close'},
                                   stream=True)
             future.add_done_callback(__wh_future_completed)
         except requests.exceptions.ReadTimeout:
