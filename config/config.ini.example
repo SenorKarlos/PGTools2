@@ -10,7 +10,7 @@
 
 #pgpool-url:                    # Address of PGPool to load accounts from and/or update their details. Required for PGPool.
                                 # e.g. http://127.0.0.1:4242 (default=None)
-#pgscout-url:                   # Address of PGScout to perform encounters. Required for PGScout. 
+#pgscout-url:                   # Address of PGScout to perform encounters. Required for PGScout.
                                 # e.g. http://127.0.0.1:4243/iv (default=None)
 #rareless-scans-threshold:      # Mark an account as shadowbanned after this many rareless scans. PGPool required. (default=10)
 #rotate-blind                   # Rotate out shadowbanned accounts. PGPool required.
@@ -234,6 +234,8 @@
 #uas-discord-guild-invite       # Invite link to redirect user to if user is not in above guild(s)
 #uas-discord-required-roles     # (Optional) If specified, user must be in one of these discord roles. Comma separated list of role ids. Requires bot configured below. Only supports single required guild.
 #uas-discord-bot-token          # Token for bot with access to your guild. Only required for required-roles feature
+
+#secret-key:                    # Secret Key to encrypt session cookies. Use a secure string.
 
 # Misc
 ######
