@@ -48,14 +48,18 @@ def redirect_client_to_auth(host, args):
 
 
 def last_guild_check_valid(session):
+    log.debug('Checking last guild check timestamp')
     last_guild_check = session.get('last_guild_check')
     if not valid_until:
         #no previous check?
+        log.debug('no timestamp found')
         return False
     elif time.time() > (last_guild_check + 86400):
+        log.debug('Validity expired')
         #current time passed previous guild check
         return False
     else:
+        log.debug('Timestamp is okay')
         return True
 
 def valid_session_client_auth(req, host, session, args):
@@ -236,6 +240,7 @@ def get_user_guilds(session, auth_token):
                   r.text)
         return False
     session['last_guild_ids'] = r.json()
+    log.debug('Guilds updated')
     return True
 
 def get_user_guild_roles(auth_token, args):
@@ -267,4 +272,5 @@ def get_user_guild_roles(auth_token, args):
                   r.text)
         return False
     session['last_guild_roles'] = r.json()['roles']
+    log.debug('Roles updated')
     return True
