@@ -1,4 +1,4 @@
-#!/usr/bin/python
+user_auth_service#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import logging
@@ -65,7 +65,7 @@ def valid_session_client_auth(req, host, session, args):
         return (True, {})
 
 def clear_session_auth_values(session, args):
-    session.pop(args.user-auth-service +'_auth')
+    session.pop(args.user_auth_service +'_auth')
     session.pop('last_auth_check')
     session.pop('last_guild_check')
     session.pop('last_guild_ids')
@@ -74,13 +74,13 @@ def clear_session_auth_values(session, args):
 #returns bool
 #checks cookie data, if okay -> store in session
 def refresh_auth(req, host, session, args):
-    encryptedData = req.cookies.get(args.user-auth-service + '_auth')
+    encryptedData = req.cookies.get(args.user_auth_service + '_auth')
     if not encryptedData:
         #no cookie/auth ever processed, shouldn't even be the case here...
         return False
 
     #cookie-data present, check the session
-    sessionData = session.get(args.user-auth-service + '_auth')
+    sessionData = session.get(args.user_auth_service + '_auth')
     if not sessionData:
         #no sessionData, check the cookie's data and update the session if it checks out
         plainData = from_sensitive(encryptedData)
@@ -88,12 +88,12 @@ def refresh_auth(req, host, session, args):
             #the cookie's token is still valid
             #TODO: consider refresh
             #for the moment, just use some processing power to transform plainData, we could modify it
-            session[args.user-auth-service + '_auth'] = to_sensitive(plainData)
+            session[args.user_auth_service + '_auth'] = to_sensitive(plainData)
             session['last_auth_check'] = time.time()
             return (True, plainData)
         else:
             #cookie does not have valid data....
-            resp.set_cookie(args.user-auth-service +'_auth', '', expires=0)
+            resp.set_cookie(args.user_auth_service +'_auth', '', expires=0)
             clear_session_auth_values(session, args)
             return (False, {})
     else:
@@ -103,12 +103,12 @@ def refresh_auth(req, host, session, args):
             #the sessions's token is still valid
             #TODO: consider refresh
             #for the moment, just use some processing power to transform plainData, we could modify it
-            session[args.user-auth-service + '_auth'] = to_sensitive(plainData)
+            session[args.user_auth_service + '_auth'] = to_sensitive(plainData)
             session['last_auth_check'] = time.time()
             return (True, plainData)
         else:
             #the session's token is invalid, bye
-            resp.set_cookie(args.user-auth-service +'_auth', '', expires=0)
+            resp.set_cookie(args.user_auth_service +'_auth', '', expires=0)
             clear_session_auth_values(session, args)
             return (False, {})
 

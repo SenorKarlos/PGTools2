@@ -349,8 +349,8 @@ class Pogom(Flask):
             sensitiveData = exchange_code(code, host, args)
             sensitiveData = to_sensitive(args.secret_encryption_key, sensitiveData)
             #store the encrypted data in both the cookie and the session...
-            resp.set_cookie(args.user-auth-service +'_auth', sensitiveData)
-            session[args.user-auth-service + '_auth', sensitiveData]
+            resp.set_cookie(args.user_auth_service +'_auth', sensitiveData)
+            session[args.user_auth_service + '_auth', sensitiveData]
             #session['userAuthCode'] = code;
             return resp
         else:
