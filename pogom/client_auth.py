@@ -241,6 +241,7 @@ def get_user_guilds(session, auth_token):
                   r.text)
         return False
     session['last_guild_ids'] = r.json()
+    session['last_guild_check'] = time.time()
     log.debug('Guilds updated')
     return True
 
