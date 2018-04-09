@@ -40,7 +40,6 @@ def wh_updater(args, queue, key_caches):
     wh_threshold_timer = default_timer()
     wh_over_threshold = False
 
-
     # Set up one session to use for all requests.
     # Requests to the same host will reuse the underlying TCP
     # connection, giving a performance increase.
