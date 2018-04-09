@@ -38,6 +38,7 @@ def check_auth(req, args, url_root, session):
         auth_tuple = valid_session_client_auth(req, host, session, args)
         if (auth_tuple[0] and
             check_guilds_and_roles(req, host, session, args, from_sensitive(args.secret_encryption_key, auth_tuple[1]))):
+            log.debug('everything checks out, cya')
             return None
         else:
             return redirect_client_to_auth(host, args)
