@@ -343,7 +343,10 @@ class Pogom(Flask):
             resp = make_response(redirect('/'))
             #set the cookie with the encrypted data...
             args = get_args()
-            sensitiveData = exchange_code(code, args.uas_host_override, args)
+            host = args.uas_host_override
+            if not host:
+                host = request.url_root
+            sensitiveData = exchange_code(code, host, args)
             sensitiveData = to_sensitive(args.secret_encryption_key, sensitiveData)
             #store the encrypted data in both the cookie and the session...
             resp.set_cookie(args.user-auth-service +'_auth', sensitiveData)
