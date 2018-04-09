@@ -48,16 +48,31 @@ def redirect_client_to_auth(host, args):
     return redirect('https://discordapp.com/api/oauth2/authorize?client_id=' + args.uas_client_id + '&redirect_uri=' + urllib.quote(host + 'auth_callback') + '&response_type=code&scope=identify%20guilds')
 
 
-def last_guild_check_valid(session):
-    log.debug('Checking last guild check timestamp')
-    last_guild_check = session.get('last_guild_check')
-    if not last_guild_check:
-        #no previous check?
+def last_guild_retrieval_valid(session):
+    log.debug('Checking last guild retrieval timestamp')
+    last_guild_retrieval = session.get('last_guild_retrieval')
+    if not last_guild_retrieval:
+        #no previous retrieval?
+        log.debug('No timestamp found')
+        return False
+    elif time.time() > (last_guild_retrieval + 86400):
+        log.debug('Validity expired')
+        #current time passed previous guild retrieval
+        return False
+    else:
+        log.debug('Timestamp is okay')
+        return True
+
+def last_role_retrieval_valid(session):
+    log.debug('Checking last role retrieval timestamp')
+    last_role_retrieval = session.get('last_guild_roles_retrieval')
+    if not last_role_retrieval:
+        #no previous role retrieval?
         log.debug('no timestamp found')
         return False
-    elif time.time() > (last_guild_check + 86400):
+    elif time.time() > (last_role_retrieval + 86400):
         log.debug('Validity expired')
-        #current time passed previous guild check
+        #current time passed previous guild role retrieval
         return False
     else:
         log.debug('Timestamp is okay')
@@ -77,17 +92,18 @@ def valid_session_client_auth(req, host, session, args):
 def clear_session_auth_values(session, args):
     session.pop(args.user_auth_service +'_auth')
     session.pop('last_auth_check')
-    session.pop('last_guild_check')
+    session.pop('last_guild_retrieval')
     session.pop('last_guild_ids')
     session.pop('last_guild_roles')
+    session.pop('last_guild_roles_retrieval')
 
 #returns bool
 #checks cookie data, if okay -> store in session
 def refresh_auth(req, host, session, args):
-    encryptedData = req.cookies.get(args.user_auth_service + '_auth')
-    if not encryptedData:
-        #no cookie/auth ever processed, shouldn't even be the case here...
-        return False
+    #encryptedData = req.cookies.get(args.user_auth_service + '_auth')
+    #if not encryptedData:
+    #    #no cookie/auth ever processed, shouldn't even be the case here...
+    #    return False
 
     #cookie-data present, check the session
     sessionData = session.get(args.user_auth_service + '_auth')
@@ -103,7 +119,7 @@ def refresh_auth(req, host, session, args):
             return (True, plainData)
         else:
             #cookie does not have valid data....
-            resp.set_cookie(args.user_auth_service +'_auth', '', expires=0)
+            #resp.set_cookie(args.user_auth_service +'_auth', '', expires=0)
             clear_session_auth_values(session, args)
             return (False, {})
     else:
@@ -118,7 +134,7 @@ def refresh_auth(req, host, session, args):
             return (True, plainData)
         else:
             #the session's token is invalid, bye
-            resp.set_cookie(args.user_auth_service +'_auth', '', expires=0)
+            #resp.set_cookie(args.user_auth_service +'_auth', '', expires=0)
             clear_session_auth_values(session, args)
             return (False, {})
 
@@ -135,48 +151,67 @@ def check_valid_discord_auth_object(auth_obj):
         log.debug('OAuth valid until: ' + auth_obj['expires_at'])
         return True
 
-def check_guilds_and_roles(req, host, session, args, enc_auth_obj):
+def check_guilds_stored(session, args):
     if args.uas_discord_required_guilds:
-        #check for guilds in session
         guilds_in_session = session.get('last_guild_ids')
-        last_guild_check = session.get('last_guild_check')
-        last_check_valid = True
-        if (not guilds_in_session or not last_guild_check
-            or not last_guild_check_valid(session)):
-            last_check_valid = False;
-            #either no guilds in session or last_guild_check invalid
-            log.debug('No previous guild check present')
-            auth_obj = from_sensitive(args.secret_encryption_key, enc_auth_obj)
-            log.debug(json.dumps(auth_obj, ensure_ascii=False))
-            if not get_user_guilds(session, auth_obj['access_token']):
-                #couldn't get the user's guilds
-                log.debug('Could not get the user\'s guilds')
-                return False
-        #everything should be fine with the session now
-        #check the guild IDs
-        log.debug('Checking validity of guild IDs')
-        if not valid_discord_guild(session, args):
-            log.debug('Guild IDs did not check out')
+        last_guild_retrieval = session.get('last_guild_retrieval')
+        if (not guilds_in_session or not last_guild_retrieval
+            or not last_guild_retrieval_valid(session)):
             return False
-        elif args.uas_discord_required_roles:
-            #check session for roles
-            log.debug('Checking roles')
-            roles_in_session = session.get('last_guild_roles')
-            auth_obj = from_sensitive(args.secret_encryption_key, enc_auth_obj)
-            if (not last_check_valid
-                and not get_user_guild_roles(session, auth_obj['access_token'])):
-                #no roles in session yet and retrieving failed
-                return False
-            #roles should now be valid
-            if not valid_discord_guild_role(session, args):
-                return False
-            else:
-                return True
         else:
-            log.debug("Guilds and roles checked out")
-            #everything checks out :)
-            return True
+            return valid_discord_guild(session, args)
     else:
+        return True
+
+def check_roles_stored(session, args):
+    if args.uas_discord_required_roles:
+        roles_in_session = session.get('last_guild_roles')
+        last_role_retrieval = session.get('last_guild_roles_retrieval')
+        if (not roles_in_session or not last_role_retrieval
+            or not last_role_retrieval_valid(session)):
+            return False
+        else:
+            return valid_discord_guild_role(session, args)
+    else:
+        return True
+
+#checks the timestamps of roles and guilds, we do not want to update them every couple seconds
+def check_last_retrieval_timestamps(session, args):
+    last_role_retrieval = session.get('last_guild_roles_retrieval')
+    last_guild_retrieval = session.get('last_guild_retrieval')
+    if ((args.uas_discord_required_roles and last_role_retrieval
+            and last_role_retrieval > time.time() - 300)
+        or (args.uas_discord_required_guilds and last_guild_retrieval
+            and last_guild_retrieval > time.time() - 300)):
+        return False
+    return True
+
+
+
+#wrapper for check_guilds and check_roles
+def check_guilds_and_roles(req, host, session, args, enc_auth_obj):
+    if args.uas_discord_required_guilds or args.uas_discord_required_roles:
+        if not check_last_retrieval_timestamps(session, args):
+            if args.uas_discord_required_roles and check_roles_stored(session, args):
+                #stored roles check out
+                return True
+            elif args.uas_discord_required_guilds and check_guilds_stored(session, args):
+                #stored guilds check out
+                return True
+            else:
+                return False
+
+        #okay, last retrievals were not within 5minutes -> update guilds and roles
+        #TODO: consider checking the access token/refresh tokens
+        auth_obj = from_sensitive(args.secret_encryption_key, enc_auth_obj)
+        if get_guilds_and_roles(session, auth_obj['access_token'], args):
+            #retrieving guilds and roles succeeded, recheck the roles/guilds
+            return check_roles_stored(session, args) or check_guilds_stored(session, args)
+        else:
+            #retrieving guilds failed... TODO: consider throwing errors
+            return False
+    else:
+        #no requirement for roles or guilds
         return True
 
 def valid_discord_guild(session, args):
@@ -229,6 +264,15 @@ def exchange_code(code, host, args, session):
     session['last_auth_check'] = time.time()
     return jsonResponse
 
+#wrapper for getting guilds and roles
+def get_guilds_and_roles(session, auth_token, args):
+    updateSuccess = True
+    if args.uas_discord_required_guilds:
+        updateSuccess = get_user_guilds(session, auth_token)
+    if args.uas_discord_required_roles:
+        updateSuccess = updateSuccess and get_user_guild_roles(session, auth_token, args)
+    return updateSuccess
+
 def get_user_guilds(session, auth_token):
     headers = {
       'Authorization': 'Bearer ' + auth_token
@@ -243,11 +287,11 @@ def get_user_guilds(session, auth_token):
                   r.text)
         return False
     session['last_guild_ids'] = r.json()
-    session['last_guild_check'] = time.time()
+    session['last_guild_retrieval'] = time.time()
     log.debug('Guilds updated')
     return True
 
-def get_user_guild_roles(auth_token, args):
+def get_user_guild_roles(session, auth_token, args):
     headers = {
       'Authorization': 'Bearer ' + auth_token
     }
@@ -276,5 +320,6 @@ def get_user_guild_roles(auth_token, args):
                   r.text)
         return False
     session['last_guild_roles'] = r.json()['roles']
+    session['last_guild_roles_retrieval'] = time.time()
     log.debug('Roles updated')
     return True
