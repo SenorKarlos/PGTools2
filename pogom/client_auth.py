@@ -135,6 +135,7 @@ def check_guilds_and_roles(req, host, session, args, auth_obj):
             or not last_guild_check_valid(session)):
             last_check_valid = False;
             #either no guilds in session or last_guild_check invalid
+            log.debug(json.dumps(auth_obj, ensure_ascii=False))
             if not get_user_guilds(session, auth_obj['access_token']):
                 #couldn't get the user's guilds
                 return False
