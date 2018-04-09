@@ -118,7 +118,7 @@ def check_valid_discord_auth_object(auth_obj):
         log.debug('Auth object not valid')
         return False
 
-    if auth_obj['expires_at'] < datetime.datetime.now():
+    if auth_obj['expires_at'] < time.time():
         log.debug('OAuth expired')
         return False
     else:
@@ -205,7 +205,7 @@ def exchange_code(code, host, args):
         return False
     jsonResponse = r.json()
     expires_in = jsonResponse.get('expires_in')
-    expiration_date = datetime.datetime.now() + datetime.timedelta(0, int(expires_in))
+    expiration_date = time.time() + int(expires_in)
     jsonResponse['expires_at'] = expiration_date
     return jsonResponse
 
