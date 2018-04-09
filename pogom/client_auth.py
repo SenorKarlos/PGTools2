@@ -143,9 +143,11 @@ def check_guilds_and_roles(req, host, session, args, auth_obj):
             log.debug(json.dumps(auth_obj, ensure_ascii=False))
             if not get_user_guilds(session, auth_obj['access_token']):
                 #couldn't get the user's guilds
+                log.debug('Could not get the user\'s guilds')
                 return False
         #everything should be fine with the session now
         #check the guild IDs
+        log.debug('Checking validity of guild IDs')
         if not valid_discord_guild(session, args):
             return False
         elif args.uas_discord_required_roles:
