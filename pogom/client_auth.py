@@ -16,6 +16,8 @@ log = logging.getLogger(__name__)
 
 def to_sensitive(key, sens_obj):
     plain = json.dumps(sens_obj, ensure_ascii=False)
+    log.debug("Encryption the following string")
+    log.debug(plain)
     cipher = encrypt(key, plain)
     return cipher
 
