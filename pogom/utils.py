@@ -588,8 +588,10 @@ def get_args():
                               'PogoAssets root directory.'))
     parser.add_argument('-uas', '--user-auth-service', default=None,
                         help='Force end users to auth to an external service.')
-    parser.add_argument('-skey', '--secret-key', default='SECRET_KEY',
-                        help='Secret Key to encrypt session cookies. Use a secure string.')
+    parser.add_argument('-ssignkey', '--secret-signing-key', default='SECRET_SIGNING_KEY',
+                        help='Secret Key to sign session cookies. Use a random string.')
+    parser.add_argument('-senckey', '--secret-encryption-key', default='SECRET_ENCRYPTION_KEY',
+                        help='Secret Key to encrypt sensitive data in the session. Use a random string.')
     parser.add_argument('-uascid', '--uas-client-id', default=None,
                         help='Client ID for user external authentication.')
     parser.add_argument('-uascs', '--uas-client-secret', default=None,

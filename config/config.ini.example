@@ -235,7 +235,8 @@
 #uas-discord-required-roles     # (Optional) If specified, user must be in one of these discord roles. Comma separated list of role ids. Requires bot configured below. Only supports single required guild.
 #uas-discord-bot-token          # Token for bot with access to your guild. Only required for required-roles feature
 
-#secret-key:                    # Secret Key to encrypt session cookies. Use a secure string.
+#secret-signing-key:                    # Secret Key to sign sessions. Use a secure string.
+#secret-encryption-key:                 # Secret key to encrypt sensitive data stored in the session
 
 # Misc
 ######

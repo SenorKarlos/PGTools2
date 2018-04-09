@@ -77,7 +77,7 @@ class Pogom(Flask):
             self.blacklist = []
             self.blacklist_keys = []
 
-        self.user_auth_code_cache = {}
+        #self.user_auth_code_cache = {}
 
         # Routes
         self.json_encoder = CustomJSONEncoder
@@ -284,7 +284,7 @@ class Pogom(Flask):
 
         #Verify auth
         if args.user_auth_service and request.endpoint != 'auth_callback':
-            return check_auth(get_args(), request.url_root, session, self.user_auth_code_cache)
+            return check_auth(get_args(), request.url_root, session)
 
 
     def make_session_permanent(self):
@@ -341,7 +341,14 @@ class Pogom(Flask):
         code = request.args.get('code')
         if code:
             resp = make_response(redirect('/'))
-            session['userAuthCode'] = code;
+            #set the cookie with the encrypted data...
+            args = get_args()
+            sensitiveData = exchange_code(code, args.uas_host_override, args)
+            sensitiveData = to_sensitive(args.secret_encryption_key, sensitiveData)
+            #store the encrypted data in both the cookie and the session...
+            resp.set_cookie(args.user-auth-service +'_auth', sensitiveData)
+            session[args.user-auth-service + '_auth', sensitiveData]
+            #session['userAuthCode'] = code;
             return resp
         else:
             abort(403)
@@ -411,7 +418,7 @@ class Pogom(Flask):
             self.control_flags['on_demand'].clear()
         d = {}
 
-        auth_redirect = check_auth(args, request, self.user_auth_code_cache)
+        auth_redirect = check_auth(args, request)
         if auth_redirect:
             return auth_redirect
         # Request time of this request.
