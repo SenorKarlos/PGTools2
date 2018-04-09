@@ -36,7 +36,7 @@ def check_auth(req, args, url_root, session):
             host = url_root
         #check if previous auth is present and valid
         auth_tuple = valid_session_client_auth(req, host, session, args)
-        if auth_tuple[0] and len(auth_tuple[1]) > 0:
+        if auth_tuple[0]:
             return check_guilds_and_roles(req, host, session, args, auth_tuple[1])
         else:
             return redirect_client_to_auth(host, args)
