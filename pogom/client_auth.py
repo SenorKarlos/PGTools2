@@ -47,7 +47,7 @@ def last_guild_check_valid(session):
     if not valid_until:
         #no previous check?
         return False
-    else if time.time() > (last_guild_check + 86400):
+    elif time.time() > (last_guild_check + 86400):
         #current time passed previous guild check
         return False
     else:
@@ -59,7 +59,7 @@ def valid_session_client_auth(req, host, session, args):
         log.info('No previous auth in session')
         #no previous auth, let's have the user auth
         return (False, {})
-    else if time.time() > (last_auth_check + 86400): #check the auth at least every 24hours
+    elif time.time() > (last_auth_check + 86400): #check the auth at least every 24hours
         return refresh_auth(req, host, session, args)
     else:
         return (True, {})
@@ -142,7 +142,7 @@ def check_guilds_and_roles(req, host, session, args, auth_obj):
         #check the guild IDs
         if not valid_discord_guild(session, args):
             return False
-        else if args.uas_discord_required_roles:
+        elif args.uas_discord_required_roles:
             #check session for roles
             roles_in_session = session.get('last_guild_roles')
             if not last_check_valid
