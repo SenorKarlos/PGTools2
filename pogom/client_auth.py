@@ -37,7 +37,7 @@ def check_auth(req, args, url_root, session):
         #check if previous auth is present and valid
         auth_tuple = valid_session_client_auth(req, host, session, args)
         if (auth_tuple[0] and
-            check_guilds_and_roles(req, host, session, args, from_sensitive(args.secret_encryption_key, auth_tuple[1]))):
+            check_guilds_and_roles(req, host, session, args, auth_tuple[1])):
             log.debug('everything checks out, cya')
             return None
         else:
@@ -135,7 +135,7 @@ def check_valid_discord_auth_object(auth_obj):
         log.debug('OAuth valid until: ' + auth_obj['expires_at'])
         return True
 
-def check_guilds_and_roles(req, host, session, args, auth_obj):
+def check_guilds_and_roles(req, host, session, args, enc_auth_obj):
     if args.uas_discord_required_guilds:
         #check for guilds in session
         guilds_in_session = session.get('last_guild_ids')
@@ -146,6 +146,7 @@ def check_guilds_and_roles(req, host, session, args, auth_obj):
             last_check_valid = False;
             #either no guilds in session or last_guild_check invalid
             log.debug('No previous guild check present')
+            auth_obj = from_sensitive(args.secret_encryption_key, enc_auth_obj)
             log.debug(json.dumps(auth_obj, ensure_ascii=False))
             if not get_user_guilds(session, auth_obj['access_token']):
                 #couldn't get the user's guilds
@@ -161,6 +162,7 @@ def check_guilds_and_roles(req, host, session, args, auth_obj):
             #check session for roles
             log.debug('Checking roles')
             roles_in_session = session.get('last_guild_roles')
+            auth_obj = from_sensitive(args.secret_encryption_key, enc_auth_obj)
             if (not last_check_valid
                 and not get_user_guild_roles(session, auth_obj['access_token'])):
                 #no roles in session yet and retrieving failed
