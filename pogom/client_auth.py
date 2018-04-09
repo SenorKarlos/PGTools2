@@ -66,7 +66,7 @@ def valid_session_client_auth(req, host, session, args):
     elif time.time() > (last_auth_check + 86400): #check the auth at least every 24hours
         return refresh_auth(req, host, session, args)
     else:
-        return (True, {})
+        return (True, session.get(args.user_auth_service +'_auth'))
 
 def clear_session_auth_values(session, args):
     session.pop(args.user_auth_service +'_auth')
