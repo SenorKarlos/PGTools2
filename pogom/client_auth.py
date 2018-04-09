@@ -131,8 +131,8 @@ def check_guilds_and_roles(req, host, session, args, auth_obj):
         guilds_in_session = session.get('last_guild_ids')
         last_guild_check = session.get('last_guild_check')
         last_check_valid = True
-        if not guilds_in_session or not last_guild_check
-        or not last_guild_check_valid(session):
+        if (not guilds_in_session or not last_guild_check
+            or not last_guild_check_valid(session)):
             last_check_valid = False;
             #either no guilds in session or last_guild_check invalid
             if not get_user_guilds(session, auth_obj['access_token']):
@@ -145,8 +145,8 @@ def check_guilds_and_roles(req, host, session, args, auth_obj):
         elif args.uas_discord_required_roles:
             #check session for roles
             roles_in_session = session.get('last_guild_roles')
-            if not last_check_valid
-            and not get_user_guild_roles(session, auth_obj['access_token']):
+            if (not last_check_valid
+                and not get_user_guild_roles(session, auth_obj['access_token'])):
                 #no roles in session yet and retrieving failed
                 return False
             #roles should now be valid
