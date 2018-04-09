@@ -284,7 +284,6 @@ class Pogom(Flask):
 
         #Verify auth
         if args.user_auth_service and request.endpoint != 'auth_callback':
-            log.debug('[[[[[[App.py: Checking auth...')
             return check_auth(request, args, request.url_root, session)
 
 
