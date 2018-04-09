@@ -51,7 +51,7 @@ def redirect_client_to_auth(host, args):
 def last_guild_check_valid(session):
     log.debug('Checking last guild check timestamp')
     last_guild_check = session.get('last_guild_check')
-    if not valid_until:
+    if not last_guild_check:
         #no previous check?
         log.debug('no timestamp found')
         return False
