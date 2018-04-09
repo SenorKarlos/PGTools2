@@ -26,7 +26,7 @@ from .models import (Pokemon, Gym, Pokestop, ScannedLocation,
                      SpawnPoint)
 from .utils import (get_args, get_pokemon_name, get_pokemon_types,
                     now, dottedQuadToNum)
-from .client_auth import check_auth
+from .client_auth import check_auth, exchange_code
 from .transform import transform_from_wgs_to_gcj
 from .blacklist import fingerprints, get_ip_blacklist
 
@@ -417,7 +417,7 @@ class Pogom(Flask):
         if args.on_demand_timeout > 0:
             self.control_flags['on_demand'].clear()
         d = {}
-        
+
         auth_redirect = check_auth(request, args, request.url_root, session)
         if auth_redirect:
             return auth_redirect
