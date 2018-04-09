@@ -16,13 +16,15 @@ log = logging.getLogger(__name__)
 
 def to_sensitive(key, sens_obj):
     plain = json.dumps(sens_obj, ensure_ascii=False)
-    log.debug("Encryption the following string")
+    log.debug("Encrypting the following string")
     log.debug(plain)
     cipher = encrypt(key, plain)
     return cipher
 
 def from_sensitive(key, stored):
     plain = decrypt(key, stored)
+    log.debug("Decrypted the following string")
+    log.debug(plain)
     retrieveObject = json.loads(plain)
     return retrieveObject
 
