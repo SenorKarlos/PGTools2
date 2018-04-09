@@ -205,7 +205,7 @@ def exchange_code(code, host, args):
         return False
     jsonResponse = r.json()
     expires_in = jsonResponse.get('expires_in')
-    expiration_date = datetime.datetime.now() + datetime.timedelta(0, int(expiration_date))
+    expiration_date = datetime.datetime.now() + datetime.timedelta(0, int(expires_in))
     jsonResponse['expires_at'] = expiration_date
     return jsonResponse
 
