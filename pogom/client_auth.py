@@ -183,7 +183,7 @@ def redirect_to_discord_guild_invite(args):
     return redirect(args.uas_discord_guild_invite)
 
 
-def exchange_code(code, host, args):
+def exchange_code(code, host, args, session):
     data = {
       'client_id': args.uas_client_id,
       'client_secret': args.uas_client_secret,
@@ -207,6 +207,7 @@ def exchange_code(code, host, args):
     expires_in = jsonResponse.get('expires_in')
     expiration_date = time.time() + int(expires_in)
     jsonResponse['expires_at'] = expiration_date
+    session['last_auth_check'] = time.time()
     return jsonResponse
 
 def get_user_guilds(session, auth_token):
