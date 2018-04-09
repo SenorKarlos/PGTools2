@@ -203,9 +203,9 @@ def exchange_code(code, host, args):
                   ' returned from OAuth attempt: ' +
                   r.text)
         return False
-    expires_in = r.get('expires_in')
-    expiration_date = datetime.datetime.now() + datetime.timedelta(0, int(expiration_date))
     jsonResponse = r.json()
+    expires_in = jsonResponse.get('expires_in')
+    expiration_date = datetime.datetime.now() + datetime.timedelta(0, int(expiration_date))
     jsonResponse['expires_at'] = expiration_date
     return jsonResponse
 
