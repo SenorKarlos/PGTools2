@@ -40,6 +40,7 @@ def wh_updater(args, queue, key_caches):
     wh_threshold_timer = default_timer()
     wh_over_threshold = False
 
+
     # Set up one session to use for all requests.
     # Requests to the same host will reuse the underlying TCP
     # connection, giving a performance increase.
@@ -57,26 +58,6 @@ def wh_updater(args, queue, key_caches):
         'gym_details': 'id',
         'raid': 'gym_id'
     }
-    # Set up one session to use for all requests.
-    # Requests to the same host will reuse the underlying TCP
-    # connection, giving a performance increase.
-    session = get_async_requests_session(
-        args.wh_retries,
-        args.wh_backoff_factor,
-        args.wh_concurrency)
-
-    # Extract the proper identifier. This list also controls which message
-    # types are getting cached.
-    ident_fields = {
-        'pokestop': 'pokestop_id',
-        'pokemon': 'encounter_id',
-        'gym': 'gym_id',
-        'gym_details': 'id',
-        'raid': 'gym_id'
-    }
-
-    # Instantiate WH LFU caches for all cached types. We separate the caches
-    # by ident_field types, because d
 
     # Instantiate WH LFU caches for all cached types. We separate the caches
     # by ident_field types, because different ident_field (message) types can
