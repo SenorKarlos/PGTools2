@@ -149,9 +149,11 @@ def check_guilds_and_roles(req, host, session, args, auth_obj):
         #check the guild IDs
         log.debug('Checking validity of guild IDs')
         if not valid_discord_guild(session, args):
+            log.debug('Guild IDs did not check out')
             return False
         elif args.uas_discord_required_roles:
             #check session for roles
+            log.debug('Checking roles')
             roles_in_session = session.get('last_guild_roles')
             if (not last_check_valid
                 and not get_user_guild_roles(session, auth_obj['access_token'])):
@@ -163,6 +165,7 @@ def check_guilds_and_roles(req, host, session, args, auth_obj):
             else:
                 return True
         else:
+            log.debug("Guilds and roles checked out")
             #everything checks out :)
             return True
     else:
