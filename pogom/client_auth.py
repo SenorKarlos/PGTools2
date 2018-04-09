@@ -1,4 +1,4 @@
-user_auth_service#!/usr/bin/python
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 
 import logging
