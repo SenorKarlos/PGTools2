@@ -588,9 +588,9 @@ def get_args():
                               'PogoAssets root directory.'))
     parser.add_argument('-uas', '--user-auth-service', default=None,
                         help='Force end users to auth to an external service.')
-    parser.add_argument('-ssignkey', '--secret-signing-key', default='SECRET_SIGNING_KEY',
+    parser.add_argument('-ssignkey', '--secret-signing-key', default=None,
                         help='Secret Key to sign session cookies. Use a random string.')
-    parser.add_argument('-senckey', '--secret-encryption-key', default='SECRET_ENCRYPTION_KEY',
+    parser.add_argument('-senckey', '--secret-encryption-key', default=None,
                         help='Secret Key to encrypt sensitive data in the session. Use a random string.')
     parser.add_argument('-uascid', '--uas-client-id', default=None,
                         help='Client ID for user external authentication.')
@@ -646,6 +646,26 @@ def get_args():
     args.log_filename = strftime(args.log_filename)
     args.log_filename = args.log_filename.replace('<sn>', '<SN>')
     args.log_filename = args.log_filename.replace('<SN>', args.status_name)
+
+    if args.user_auth_service == "Discord":
+        #Check enc/signing keys and other required values
+        if args.secret_encryption_key is None:
+            print("uas-secret-encryption-key missing")
+            sys.exit(1)
+        elif args.secret_signing_key is None:
+            print("uas-secret-signing-key missing")
+            sys.exit(1)
+        elif args.secret_signing_key == args.secret_encryption_key:
+            print("uas-secret-signing-key and uas-secret-encryption-key " +
+                        "have to be different")
+            sys.exit(1)
+        elif args.uas_client_id is None:
+            print("uas-client-id missing")
+            sys.exit(1)
+        elif args.uas_client_secret is None:
+            print("uas-client-secret missing")
+            sys.exit(1)
+
 
     if args.only_server:
         if args.location is None:

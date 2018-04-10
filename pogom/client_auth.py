@@ -51,7 +51,10 @@ def check_auth(req, args, url_root, session):
             else:
                 #guilds or roles not valid.... TODO: check if no invite URI set
                 #log.debug('Guilds or roles invalid')
-                return redirect_to_discord_guild_invite(args)
+                if args.uas_discord_guild_invite:
+                    return redirect_to_discord_guild_invite(args)
+                else:
+                    return redirect('/', code=403)
         else:
             return redirect_client_to_auth(host, args)
     return None
