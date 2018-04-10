@@ -230,10 +230,11 @@
 #uas-client-id:                 # OAuth2 Client ID.
 #uas-client-secret:             # OAuth2 Client Secret. Client should have auth callback url of <yourserverurl>/auth_callback
 #uas-host-override              # override auth redirect host.
-#uas-discord-required-guilds    # (Optional) If guild ID(s) are specified, user must be in at least one discord guild (server) to access map. Comma separated if multiple.
-#uas-discord-guild-invite       # Invite link to redirect user to if user is not in above guild(s)
-#uas-discord-required-roles     # (Optional) If specified, user must be in one of these discord roles. Comma separated list of role ids. Requires bot configured below. Only supports single required guild.
-#uas-discord-bot-token          # Token for bot with access to your guild. Only required for required-roles feature
+#uas-discord-required-guilds:   # (Optional) If guild ID(s) are specified, user must be in at least one discord guild (server) to access map. Comma separated if multiple.
+#uas-discord-guild-invite:      # Invite link to redirect user to if user is not in above guild(s)
+#uas-discord-required-roles:    # (Optional) If specified, user must be in one of these discord roles. Comma separated list of role ids. Requires bot configured below. Only supports single required guild.
+#uas-discord-bot-token:         # Token for bot with access to your guild. Only required for required-roles feature
+#uas-retrieval-period:          # Time in seconds that no request against the Discord-API is supposed to be sent for retrieval or guild and role IDs, they are stored in the cookie. Default: 600 (=10 minutes)
 
 #secret-signing-key:                    # Secret Key to sign sessions. Use a secure string.
 #secret-encryption-key:                 # Secret key to encrypt sensitive data stored in the session

@@ -611,6 +611,10 @@ def get_args():
     parser.add_argument('-uasdbt', '--uas-discord-bot-token', default=None,
                         help=('Discord Bot Token for user ' +
                               'external authentication.'))
+    parser.add_argument('-uasrperiod', '--uas-retrieval-period', default=600,
+                        help=('The time to pass between Discord API requests ' +
+                              'to get guild IDs and roles to be stored in ' +
+                              ' session. Basically affects when you kick someone'))
     rarity = parser.add_argument_group('Dynamic Rarity')
     rarity.add_argument('-Rh', '--rarity-hours',
                         help=('Number of hours of Pokemon data to use' +

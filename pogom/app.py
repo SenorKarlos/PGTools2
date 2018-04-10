@@ -4,6 +4,7 @@
 import calendar
 import logging
 import gc
+import time
 
 from datetime import datetime
 from s2sphere import LatLng
@@ -346,13 +347,22 @@ class Pogom(Flask):
             host = args.uas_host_override
             if not host:
                 host = request.url_root
-            sensitiveData = exchange_code(code, host, args, session)
-            sensitiveData = to_sensitive(args.secret_encryption_key, sensitiveData)
-            #store the encrypted data in both the cookie and the session...
-            #resp.set_cookie(args.user_auth_service +'_auth', sensitiveData)
-            session[args.user_auth_service + '_auth'] = sensitiveData
-            #session['userAuthCode'] = code;
-            return resp
+
+
+            #TODO: check when last attempt happened/set a counter
+            last_callback = session.get('last_callback')
+            if last_callback and (last_callback + 600) < time.time():
+                #user authed previously (within the last 10 minutes) in the same session
+                abort(403)
+            else:
+                sensitiveData = exchange_code(code, host, args, session)
+                sensitiveData = to_sensitive(args.secret_encryption_key, sensitiveData)
+                #store the encrypted data in both the cookie and the session...
+                #resp.set_cookie(args.user_auth_service +'_auth', sensitiveData)
+                session[args.user_auth_service + '_auth'] = sensitiveData
+                #session['userAuthCode'] = code;
+                session['last_callback'] = time.time()
+                return resp
         else:
             abort(403)
 
