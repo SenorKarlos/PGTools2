@@ -269,12 +269,12 @@ def check_valid_discord_auth_object(auth_obj):
 #wrapper for check_guilds and check_roles
 def check_guilds_and_roles(req, host, session, args, plain_auth_obj):
     if args.uas_discord_required_guilds or args.uas_discord_required_roles:
-        log.debug('Checking guilds and roles')
+        #log.debug('Checking guilds and roles')
         guilds_in_session = session.get('last_guild_ids')
         roles_in_session = session.get('last_guild_roles')
         last_requirements_retrieval = session.get('last_requirements_retrieval')
         if check_last_retrieval_timestamps(session, args):
-            log.debug('Last retrieval timestamps still okay')
+            #log.debug('Last retrieval timestamp still okay')
             if args.uas_discord_required_roles and valid_discord_guild_role(session, args):
                 #stored roles check out
                 return True
@@ -322,7 +322,7 @@ def check_last_retrieval_timestamps(session, args):
         log.debug('Last retrieval timestamps not okay')
         return False
     else:
-        log.debug('Last retrieval timestamps okay')
+        #log.debug('Last retrieval timestamps okay')
         return True
 
 # Checks the IDs of required guilds against the ones stored
