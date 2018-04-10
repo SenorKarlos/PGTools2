@@ -83,6 +83,37 @@ def exchange_code(code, host, args, session):
     session['last_auth_check'] = time.time()
     return jsonResponse
 
+def refresh_tokens(host, args, session, plainAuthObject):
+    data = {
+      'client_id': args.uas_client_id,
+      'client_secret': args.uas_client_secret,
+      'grant_type': 'refresh_token',
+      'code': plainAuthObject['refresh_token'],
+      'redirect_uri': host + "auth_callback"
+    }
+    headers = {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    }
+    r = requests.post(
+        '%s/oauth2/token' % 'https://discordapp.com/api/v6', data, headers)
+    try:
+        r.raise_for_status()
+    except HTTPError:
+        log.debug('' + str(r.status_code) +
+                  ' returned from OAuth attempt: ' +
+                  r.text)
+        return False
+    jsonResponse = r.json()
+    expires_in = jsonResponse.get('expires_in')
+    expiration_date = time.time() + int(expires_in)
+    jsonResponse['expires_at'] = expiration_date
+    session['last_auth_check'] = time.time()
+
+    sensitiveData = to_sensitive(args.secret_encryption_key, jsonResponse)
+    session[args.user_auth_service + '_auth'] = sensitiveData
+    return jsonResponse
+
+
 # Clears everything stored regarding auth
 def clear_session_auth_values(session, args):
     session.pop(args.user_auth_service +'_auth')
@@ -184,9 +215,17 @@ def refresh_auth(req, host, session, args):
         if check_valid_discord_auth_object():
             #the sessions's token is still valid
             #TODO: consider refresh
-            #for the moment, just use some processing power to transform plainData, we could modify it
-            session[args.user_auth_service + '_auth'] = to_sensitive(plainData)
-            session['last_auth_check'] = time.time()
+            if plainData['expires_at'] - time.time() < 259200:
+                #auth is valid for less than another 3 days, refresh tokens
+                plainData = refresh_tokens(host, args, session, plainData)
+                if not plainData:
+                    #could not refresh tokens
+                    #TODO: consider some handling...
+                    log.debug('Failed refreshing tokens')
+            else:
+                #for the moment, just use some processing power to transform plainData, we could modify it
+                session[args.user_auth_service + '_auth'] = to_sensitive(plainData)
+                session['last_auth_check'] = time.time()
             return (True, plainData)
         else:
             #the session's token is invalid, bye
