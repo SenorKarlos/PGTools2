@@ -611,7 +611,7 @@ def get_args():
     parser.add_argument('-uasdbt', '--uas-discord-bot-token', default=None,
                         help=('Discord Bot Token for user ' +
                               'external authentication.'))
-    parser.add_argument('-uasrperiod', '--uas-retrieval-period', default=600,
+    parser.add_argument('-uasrperiod', '--uas-retrieval-period', default=300,
                         help=('The time to pass between Discord API requests ' +
                               'to get guild IDs and roles to be stored in ' +
                               ' session. Basically affects when you kick someone'))

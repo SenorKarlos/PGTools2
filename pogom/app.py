@@ -27,7 +27,8 @@ from .models import (Pokemon, Gym, Pokestop, ScannedLocation,
                      SpawnPoint)
 from .utils import (get_args, get_pokemon_name, get_pokemon_types,
                     now, dottedQuadToNum)
-from .client_auth import check_auth, exchange_code, to_sensitive
+from .client_auth import (check_auth, exchange_code, to_sensitive,
+                            get_guilds_and_roles)
 from .transform import transform_from_wgs_to_gcj
 from .blacklist import fingerprints, get_ip_blacklist
 
@@ -356,10 +357,19 @@ class Pogom(Flask):
                 abort(403)
             else:
                 sensitiveData = exchange_code(code, host, args, session)
-                sensitiveData = to_sensitive(args.secret_encryption_key, sensitiveData)
+                if not sensitiveData:
+                    abort(403)
+                encryptedData = to_sensitive(args.secret_encryption_key, sensitiveData)
+                #let's also get guild IDs and stuff
+                access_token = sensitiveData.get('access_token')
+                if access_token:
+                    log.debug('Retrieving guilds and roles')
+                    get_guilds_and_roles(session, access_token, args)
+                    last_guild_ids = session.get('last_guild_ids')
+
                 #store the encrypted data in both the cookie and the session...
                 #resp.set_cookie(args.user_auth_service +'_auth', sensitiveData)
-                session[args.user_auth_service + '_auth'] = sensitiveData
+                session[args.user_auth_service + '_auth'] = encryptedData
                 #session['userAuthCode'] = code;
                 session['last_callback'] = time.time()
                 return resp
