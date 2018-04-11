@@ -363,9 +363,9 @@ class Pogom(Flask):
                 #let's also get guild IDs and stuff
                 access_token = sensitiveData.get('access_token')
                 if access_token:
-                    log.debug('Retrieving guilds and roles')
+                    #log.debug('Retrieving guilds and roles')
                     get_guilds_and_roles(session, access_token, args)
-                    last_guild_ids = session.get('last_guild_ids')
+                    #last_guild_ids = session.get('last_guild_ids')
 
                 #store the encrypted data in both the cookie and the session...
                 #resp.set_cookie(args.user_auth_service +'_auth', sensitiveData)

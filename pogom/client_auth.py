@@ -7,24 +7,50 @@ import urllib
 import datetime
 import json
 import time
+import base64
+
+from Crypto.Cipher import AES
+from Crypto.Hash import SHA256
+from Crypto import Random
 
 from flask import redirect
 from requests.exceptions import HTTPError
-from simplecrypt import encrypt, decrypt
+#from simplecrypt import encrypt, decrypt
 
 log = logging.getLogger(__name__)
 
+#https://stackoverflow.com/questions/42568262/how-to-encrypt-text-with-a-password-in-python/44212550#44212550
+def encrypt(key, source, encode=True):
+    key = SHA256.new(key).digest()  # use SHA-256 over our key to get a proper-sized AES key
+    IV = Random.new().read(AES.block_size)  # generate IV
+    encryptor = AES.new(key, AES.MODE_CBC, IV)
+    padding = AES.block_size - len(source) % AES.block_size  # calculate needed padding
+    source += chr(padding) * padding  # Python 2.x: source += chr(padding) * padding
+    data = IV + encryptor.encrypt(source)  # store the IV at the beginning and encrypt
+    return base64.b64encode(data).decode("latin-1") if encode else data
+
+def decrypt(key, source, decode=True):
+    if decode:
+        source = base64.b64decode(source.encode("latin-1"))
+    key = SHA256.new(key).digest()  # use SHA-256 over our key to get a proper-sized AES key
+    IV = source[:AES.block_size]  # extract the IV from the beginning
+    decryptor = AES.new(key, AES.MODE_CBC, IV)
+    data = decryptor.decrypt(source[AES.block_size:])  # decrypt
+    padding = ord(data[-1])  # pick the padding value from the end; Python 2.x: ord(data[-1])
+    if data[-padding:] != chr(padding) * padding:  # Python 2.x: chr(padding) * padding
+        raise ValueError("Invalid padding...")
+    return data[:-padding]  # remove the padding
+
+
 def to_sensitive(key, sens_obj):
     plain = json.dumps(sens_obj, ensure_ascii=False)
-    #log.debug("Encrypting the following string")
-    #log.debug(plain)
-    cipher = encrypt(key, plain)
-    return cipher
+
+    encText = encrypt(key, plain)
+    return encText
 
 def from_sensitive(key, stored):
     plain = decrypt(key, stored)
-    #log.debug("Decrypted the following string")
-    #log.debug(plain)
+
     retrieveObject = json.loads(plain)
     return retrieveObject
 
@@ -126,12 +152,18 @@ def refresh_tokens(host, args, session, plainAuthObject):
 
 # Clears everything stored regarding auth
 def clear_session_auth_values(session, args):
-    session.pop(args.user_auth_service +'_auth')
-    session.pop('last_auth_check')
-    session.pop('last_requirements_retrieval')
-    session.pop('last_guild_ids')
-    session.pop('last_guild_roles')
-    session.pop('last_callback')
+    if session.get(args.user_auth_service +'_auth'):
+        session.pop(args.user_auth_service +'_auth')
+    if session.get('last_auth_check'):
+        session.pop('last_auth_check')
+    if session.get('last_requirements_retrieval'):
+        session.pop('last_requirements_retrieval')
+    if session.get('last_guild_ids'):
+        session.pop('last_guild_ids')
+    if session.get('last_guild_roles'):
+        session.pop('last_guild_roles')
+    if session.get('last_callback'):
+        session.pop('last_callback')
 
 ################
 #Getters for values to check against
@@ -224,7 +256,12 @@ def refresh_auth(req, host, session, args):
     sessionData = session.get(args.user_auth_service + '_auth')
     if sessionData:
         #we got data in the session, let's check it for validity
-        plainData = from_sensitive(args.secret_encryption_key, sessionData)
+        try:
+            plainData = from_sensitive(args.secret_encryption_key, sessionData)
+        finally:
+            clear_session_auth_values(session, args)
+            return (False, None, None)
+
         if check_valid_discord_auth_object(plainData):
             #the sessions's token is still valid
             #TODO: consider refresh
@@ -291,8 +328,12 @@ def check_guilds_and_roles(req, host, session, args, plain_auth_obj):
         enc_auth_obj = session.get(args.user_auth_service + '_auth')
         if plain_auth_obj is None and enc_auth_obj:
             log.debug('No plain auth object given, decrypting session')
-            plain_auth_obj = from_sensitive(args.secret_encryption_key, enc_auth_obj)
-            log.debug('Got ' + json.dumps(plain_auth_obj))
+            try:
+                clear_session_auth_values(session, args)
+                plain_auth_obj = from_sensitive(args.secret_encryption_key, enc_auth_obj)
+            finally:
+                return False
+            #log.debug('Got ' + json.dumps(plain_auth_obj))
         #okay, last retrievals were not within 5minutes -> update guilds and roles
         #auth_obj = from_sensitive(args.secret_encryption_key, enc_auth_obj
         access_token = plain_auth_obj.get('access_token')
