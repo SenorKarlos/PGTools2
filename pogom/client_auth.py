@@ -258,7 +258,8 @@ def refresh_auth(req, host, session, args):
         #we got data in the session, let's check it for validity
         try:
             plainData = from_sensitive(args.secret_encryption_key, sessionData)
-        finally:
+        except: #catch-all... bad practice, but if that's the case, we do not need any further treatment right now
+            log.debug('Failed decrypting sessionData')
             clear_session_auth_values(session, args)
             return (False, None, None)
 
@@ -331,13 +332,14 @@ def check_guilds_and_roles(req, host, session, args, plain_auth_obj):
             try:
                 clear_session_auth_values(session, args)
                 plain_auth_obj = from_sensitive(args.secret_encryption_key, enc_auth_obj)
-            finally:
+            except: #catch-all... bad practice, but if that's the case, we do not need any further treatment right now
+                log.debug('Failed decrypting enc_auth_obj')
                 return False
             #log.debug('Got ' + json.dumps(plain_auth_obj))
         #okay, last retrievals were not within 5minutes -> update guilds and roles
         #auth_obj = from_sensitive(args.secret_encryption_key, enc_auth_obj
         access_token = plain_auth_obj.get('access_token')
-        log.debug('Access token: ' + access_token)
+        #log.debug('Access token: ' + access_token)
         if access_token and get_guilds_and_roles(session, access_token, args):
             #retrieving guilds and roles succeeded, recheck the roles/guilds
             log.debug('Checking roles stored in session')
