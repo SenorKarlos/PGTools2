@@ -408,6 +408,11 @@ def main():
         t.daemon = True
         t.start()
 
+    if args.user_auth_service:
+        log.info(args.user_auth_service + ' authentication enabled')
+    else:
+        log.info('No authentication method enabled')
+
     # Database cleaner; really only need one ever.
     if args.db_cleanup:
         t = Thread(target=clean_db_loop, name='db-cleaner', args=(args,))

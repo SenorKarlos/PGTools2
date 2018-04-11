@@ -647,7 +647,7 @@ def get_args():
     args.log_filename = args.log_filename.replace('<sn>', '<SN>')
     args.log_filename = args.log_filename.replace('<SN>', args.status_name)
 
-    if args.user_auth_service == "Discord":
+    if args.user_auth_service and args.user_auth_service == "Discord":
         #Check enc/signing keys and other required values
         if args.secret_encryption_key is None:
             print("uas-secret-encryption-key missing")
@@ -665,7 +665,9 @@ def get_args():
         elif args.uas_client_secret is None:
             print("uas-client-secret missing")
             sys.exit(1)
-
+    elif args.user_auth_service:
+        print("Invalid authentication method")
+        sys.exit(1)
 
     if args.only_server:
         if args.location is None:
