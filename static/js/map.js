@@ -3044,8 +3044,7 @@ $(function () {
         })
         $selectRarityNotify.select2({
             placeholder: i8ln('Select Rarity'),
-            data: [i8ln('Common'), i8ln('Uncommon'), i8ln('Rare'), i8ln('Very Rare'), i8ln('Ultra Rare'), i8ln('New Spawn')],
-            templateResult: formatState
+            data: [i8ln('Common'), i8ln('Uncommon'), i8ln('Rare'), i8ln('Very Rare'), i8ln('Ultra Rare'), i8ln('New Spawn')]
         })
 
         // setup list change behavior now that we have the list to work from
