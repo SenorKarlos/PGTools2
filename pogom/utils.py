@@ -1006,6 +1006,9 @@ def init_args(args):
             args.webhook_whitelist_file))
         watchercfg['webhook_whitelist'] = (args.webhook_whitelist_file, None)
 
+    if args.hide_encounters:
+        log.info("Encounters stats disabled on frontend")
+
     t = Thread(target=watch_pokemon_lists, args=(args, watchercfg))
     t.daemon = True
     t.start()
