@@ -879,6 +879,10 @@ var StoreOptions = {
         default: 0, // 0: none, 1: <=Common, 2: <=Uncommon, 3: <=Rare, 4: <=Very Rare, 5: <=Ultra Rare
         type: StoreTypes.Number
     },
+    'showParkRaidsOnly': {
+        default: false,
+        type: StoreTypes.Boolean
+    },
     'showRaids': {
         default: false,
         type: StoreTypes.Boolean
@@ -896,6 +900,10 @@ var StoreOptions = {
         type: StoreTypes.Number
     },
     'showGyms': {
+        default: false,
+        type: StoreTypes.Boolean
+    },
+    'showParkGymsOnly': {
         default: false,
         type: StoreTypes.Boolean
     },

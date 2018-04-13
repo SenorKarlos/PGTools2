@@ -25,7 +25,7 @@ from pogom.utils import (get_args, now, gmaps_reverse_geolocate, init_args,
                          log_resource_usage_loop, get_debug_dump_link,
                          dynamic_rarity_refresher)
 from pogom.altitude import get_gmaps_altitude
-
+from pogom.osm import update_ex_gyms
 from pogom.models import (init_database, create_tables, drop_tables,
                           PlayerLocale, db_updater, clean_db_loop,
                           verify_table_encoding, verify_database_schema)
@@ -289,6 +289,15 @@ def main():
 
     args.root_path = os.path.dirname(os.path.abspath(__file__))
     init_args(args)
+  
+    if args.ex_gyms:
+        # Geofence is required.
+        if not args.geofence_file:
+            log.critical('A geofence is required to find EX-gyms.')
+            sys.exit(1)
+        update_ex_gyms(args.geofence_file)
+        log.info('Finished checking gyms against OSM parks, exiting.')
+        sys.exit(1)
 
     # Initialize Mr. Mime library
     mrmime_cfg = {

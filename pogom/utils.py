@@ -503,6 +503,11 @@ def get_args():
     parser.add_argument('-sn', '--status-name', default=str(os.getpid()),
                         help=('Enable status page database update using ' +
                               'STATUS_NAME as main worker name.'))
+    parser.add_argument('-exg', '--ex-gyms',
+                        help=('Fetch OSM parks within geofence and flag ' +
+                              'gyms that are candidates for EX raids. ' +
+                              'Only required once per area.'),
+                        action='store_true', default=False)
     parser.add_argument('-hk', '--hash-key', default=None, action='append',
                         help='Key for hash server')
     parser.add_argument('-novc', '--no-version-check', action='store_true',
