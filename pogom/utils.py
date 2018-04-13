@@ -173,6 +173,9 @@ def get_args():
     parser.add_argument('-enc', '--encounter',
                         help='Start an encounter to gather IVs and moves.',
                         action='store_true', default=False)
+    parser.add_argument('-hide', '--hide-encounters',
+                        help='Hide the encounter stats from the web',
+                        action='store_true', default=False)
     parser.add_argument('-mpm', '--medalpokemon',
                         help='Show notify for tiny rattata and big magikarp.',
                         action='store_true', default=False)
@@ -1002,6 +1005,9 @@ def init_args(args):
         log.info("Watching webhook whitelist file {} for changes.".format(
             args.webhook_whitelist_file))
         watchercfg['webhook_whitelist'] = (args.webhook_whitelist_file, None)
+
+    if args.hide_encounters:
+        log.info("Encounters stats disabled on frontend")
 
     t = Thread(target=watch_pokemon_lists, args=(args, watchercfg))
     t.daemon = True
