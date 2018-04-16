@@ -114,11 +114,13 @@ class AuthDiscord(AuthBase):
         return jsonResponse
 
     def refresh_tokens(self, session, plainAuthObject):
+        self.log.debug("Trying to refresh tokens with object")
+        #self.log.info(plainAuthObject)
         data = {
           'client_id': self.discord_client_id,
           'client_secret': self.discord_client_secret,
           'grant_type': 'refresh_token',
-          'code': plainAuthObject['refresh_token'],
+          'refresh_token': plainAuthObject['refresh_token'],
           'redirect_uri': self.host + "auth_callback"
         }
         headers = {
@@ -139,7 +141,7 @@ class AuthDiscord(AuthBase):
         jsonResponse['expires_at'] = expiration_date
         session['last_auth_check'] = time.time()
 
-        sensitiveData = to_sensitive(self.key, jsonResponse)
+        sensitiveData = self.to_sensitive(jsonResponse)
         session[self.auth_service + '_auth'] = sensitiveData
         return jsonResponse
 
@@ -238,7 +240,7 @@ class AuthDiscord(AuthBase):
             #self.log.debug('No previous auth in session')
             #no previous auth, let's have the user auth
             return (False, None, None)
-        elif time.time() > (last_auth_check + 86400): #check the auth at least every 24hours
+        elif time.time() > (last_auth_check + 86400): #check the auth at least every 24hours (86400 secs)
             return self.refresh_auth(req, session)
         else:
             return (True, None, session.get(self.auth_service +'_auth'))
@@ -259,14 +261,16 @@ class AuthDiscord(AuthBase):
 
             if self.check_valid_discord_auth_object(plainData):
                 #the sessions's token is still valid
-                #TODO: consider refresh
+                self.log.debug('Token still valid')
                 if plainData['expires_at'] - time.time() < 259200:
                     #auth is valid for less than another 3 days, refresh tokens
+                    self.log.debug('Refreshing tokens')
                     plainData = self.refresh_tokens(session, plainData)
                     if not plainData:
                         #could not refresh tokens
                         #TODO: consider some handling...
                         self.log.debug('Failed refreshing tokens')
+                        self.clear_session_auth_values(session)
                     else:
                         session[self.auth_service + '_auth'] = self.to_sensitive(plainData)
                 else:
@@ -333,6 +337,9 @@ class AuthDiscord(AuthBase):
                 #self.log.debug('Got ' + json.dumps(plain_auth_obj))
             #okay, last retrievals were not within 5minutes -> update guilds and roles
             #auth_obj = from_sensitive(args.secret_encryption_key, enc_auth_obj
+            if type(plain_auth_obj) == type(True):
+                self.clear_session_auth_values(session)
+                return False
             access_token = plain_auth_obj.get('access_token')
             #self.log.debug('Access token: ' + access_token)
             if access_token and self.update_requirements(session, access_token):
