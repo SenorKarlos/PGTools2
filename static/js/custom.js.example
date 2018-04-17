@@ -32,6 +32,11 @@ $(function () {
         '/',
         '/mobile'
     ]
+    
+    // customLink Button Settings
+    const customLinkButtonEnabled = false // Default: False.
+    const customLinkTitle = 'Test' // Default: ''
+    const customLinkUrl = 'http://www.test.com' // Default: ''
 
     // Clustering! Different zoom levels for desktop vs mobile.
     const disableClusters = false // Default: false.
@@ -123,6 +128,13 @@ $(function () {
         ga('create', analyticsKey, 'auto')
         ga('send', 'pageview')
     }
+
+    // customLink Button
+
+	if (customLinkButtonEnabled === true) {
+	var htmlCode = '<a href="' + customLinkUrl + '" id="customLinkButton" style="float: right;"><span class="label">' + customLinkTitle + '</span></a>'
+document.getElementById('statsToggle').insertAdjacentHTML('afterend', htmlCode);
+	}
 
     // Show MOTD.
     if (motdEnabled && motdShowOnPages.indexOf(currentPage) !== -1) {
