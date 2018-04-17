@@ -622,6 +622,12 @@ def get_args():
                         help=('Filename of rarity json for different ' +
                               'databases (without .json) Default: rarity'),
                         default='rarity')
+    parser.add_argument('-exg', '--ex-gyms',
+                        help=('Fetch OSM parks within geofence and flag ' +
+                              'gyms that are candidates for EX raids. ' +
+                              'Only required once per area.'),
+                        action='store_true', default=False)
+
     statusp = parser.add_argument_group('Status Page')
     statusp.add_argument('-SPp', '--status-page-password', default=None,
                          help='Set the status page password.')
