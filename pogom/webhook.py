@@ -27,13 +27,8 @@ def send_to_webhooks(args, session, message_frame):
 
     for w in args.webhooks:
         try:
-            # Disable keep-alive and set streaming to True, so we can skip
-            # the response content.
             future = session.post(w, json=message_frame,
-                                  timeout=(connect_timeout, read_timeout),
-                                  background_callback=__wh_request_completed,
-                                  headers={'Connection': 'close'},
-                                  stream=True)
+                                  timeout=(connect_timeout, read_timeout))
             future.add_done_callback(__wh_future_completed)
         except requests.exceptions.ReadTimeout:
             log.exception('Response timeout on webhook endpoint %s.', w)
@@ -70,7 +65,7 @@ def wh_updater(args, queue, key_caches):
         key_caches[key] = LFUCache(maxsize=args.wh_lfu_size)
 
     # Prepare to send data per timed message frames instead of per object.
-    frame_interval_sec = (args.wh_frame_interval / 1000)
+    frame_interval_sec = (args.wh_frame_interval / 1000.0)
     frame_first_message_time_sec = default_timer()
     frame_messages = []
     first_message = True
@@ -186,17 +181,18 @@ def __wh_future_completed(future):
     # Handle any exceptions that might've occurred.
     try:
         exc = future.exception(timeout=0)
-
         if exc:
             log.warning("Something's wrong with your webhook: %s.", exc)
+            return
+
+        # Verify Status Code
+        response = future.result()
+        response.raise_for_status()
+    except requests.exceptions.HTTPError as ex:
+        log.warning('Unexpected response from webhook %s: %s.',
+                    response.url, ex)
     except Exception as ex:
         log.exception('Unexpected exception in exception info: %s.', ex)
-
-
-# Background handler for completed webhook requests from requests lib.
-def __wh_request_completed(sess, resp):
-    # Instantly close the response to release the connection back to the pool.
-    resp.close()
 
 
 def __get_key_fields(whtype):

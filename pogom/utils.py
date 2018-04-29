@@ -470,18 +470,18 @@ def get_args():
     parser.add_argument('-whct', '--wh-connect-timeout',
                         help=('Connect timeout (in seconds) for webhook' +
                               ' requests.'),
-                        type=float, default=1.0)
+                        type=float, default=5.0)
     parser.add_argument('-whrt', '--wh-read-timeout',
                         help=('Read timeout (in seconds) for webhook ' +
                               'requests.'),
-                        type=float, default=1.0)
+                        type=float, default=5.0)
     parser.add_argument('-whbf', '--wh-backoff-factor',
                         help=('Factor (in seconds) by which the delay ' +
                               'until next retry will increase.'),
                         type=float, default=0.25)
     parser.add_argument('-whlfu', '--wh-lfu-size',
                         help='Webhook LFU cache max size.', type=int,
-                        default=2500)
+                        default=10000)
     parser.add_argument('-whfi', '--wh-frame-interval',
                         help=('Minimum time (in ms) to wait before sending the'
                               + ' next webhook data frame.'), type=int,
