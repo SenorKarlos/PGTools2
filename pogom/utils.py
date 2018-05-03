@@ -588,6 +588,8 @@ def get_args():
                               'PogoAssets root directory.'))
     parser.add_argument('-uas', '--user-auth-service', default=None,
                         help='Force end users to auth to an external service.')
+    parser.add_argument('-ccl', '--check-concurrent-logins', default=False,
+                        action='store_true', help='Check for concurrent logins and disallow them.')
     parser.add_argument('-ssignkey', '--secret-signing-key', default=None,
                         help='Secret Key to sign session cookies. Use a random string.')
     parser.add_argument('-senckey', '--secret-encryption-key', default=None,

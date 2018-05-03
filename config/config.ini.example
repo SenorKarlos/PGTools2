@@ -227,9 +227,10 @@
 # Note that the required-roles feature requires a configuration with a single required guild.
 
 #user-auth-service:             # Force end users to auth to an external service. Supported: Discord
+#check-concurrent-logins        # Enable to check to concurrent logins. If enabled users will not be able to login more than once with the same discord account. Default: False
 #uas-client-id:                 # OAuth2 Client ID.
 #uas-client-secret:             # OAuth2 Client Secret. Client should have auth callback url of <yourserverurl>/auth_callback
-#uas-host-override              # override auth redirect host.
+#uas-host-override              # Required: URI to redirect to after auth. e.g. example.com/map
 #uas-discord-required-guilds:   # (Optional) If guild ID(s) are specified, user must be in at least one discord guild (server) to access map. Comma separated if multiple.
 #uas-discord-guild-invite:      # Invite link to redirect user to if user is not in above guild(s)
 #uas-discord-required-roles:    # (Optional) If specified, user must be in one of these discord roles. Comma separated list of role ids. Requires bot configured below. Only supports single required guild.

@@ -111,6 +111,9 @@ class Pogom(Flask):
         self.route("/scout", methods=['GET'])(self.scout_pokemon)
         self.route("/lure", methods=['GET'])(self.scout_lure)
         self.route("/<statusname>", methods=['GET'])(self.fullmap)
+        if args.user_auth_service:
+            log.info('Discord auth enabled')
+            self.discord_auth = AuthDiscord(args)
 
     def gym_img(self):
         team = request.args.get('team')
@@ -289,8 +292,8 @@ class Pogom(Flask):
 
         #Verify auth
         if args.user_auth_service and request.endpoint != 'auth_callback':
-            discord_auth = AuthDiscord(args, request.url_root)
-            return discord_auth.check_auth(request, session)
+            #discord_auth = AuthDiscord(args, request.url_root)
+            return self.discord_auth.check_auth(request, session)
 
 
     def make_session_permanent(self):
@@ -360,16 +363,16 @@ class Pogom(Flask):
                 #user authed previously (within the last 10 minutes) in the same session
                 abort(403)
             else:
-                discord_auth = AuthDiscord(args, request.url_root)
-                sensitiveData = discord_auth.exchange_code(code, session)
+                #discord_auth = AuthDiscord(args, request.url_root)
+                sensitiveData = self.discord_auth.exchange_code(code, session)
                 if not sensitiveData:
                     abort(403)
-                encryptedData =  discord_auth.to_sensitive(sensitiveData)
+                encryptedData = self.discord_auth.to_sensitive(sensitiveData)
                 #let's also get guild IDs and stuff
                 access_token = sensitiveData.get('access_token')
                 if access_token:
                     #log.debug('Retrieving guilds and roles')
-                     discord_auth.update_requirements(session, access_token)
+                     self.discord_auth.update_requirements(session, access_token)
                     #last_guild_ids = session.get('last_guild_ids')
 
                 #store the encrypted data in both the cookie and the session...
@@ -446,8 +449,8 @@ class Pogom(Flask):
             self.control_flags['on_demand'].clear()
         d = {}
 
-        discord_auth = AuthDiscord(args, request.url_root)
-        auth_redirect = discord_auth.check_auth(request, session)
+        #discord_auth = AuthDiscord(args, request.url_root)
+        auth_redirect = self.discord_auth.check_auth(request, session)
         if auth_redirect:
             return auth_redirect
         # Request time of this request.

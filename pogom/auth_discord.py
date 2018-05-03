@@ -7,6 +7,8 @@ import urllib
 import datetime
 import json
 import time
+import string
+import random
 
 from flask import redirect
 from requests.exceptions import HTTPError
@@ -16,12 +18,10 @@ from auth_base import AuthBase
 
 class AuthDiscord(AuthBase):
 
-    def __init__(self, args, url_root):
+    def __init__(self, args):
         self.log = logging.getLogger(__name__)
         self.auth_service = args.user_auth_service
         self.host = args.uas_host_override
-        if not self.host:
-            self.host = url_root
         self.key = args.secret_encryption_key
         self.invite_uri = args.uas_discord_guild_invite
         self.discord_client_id = args.uas_client_id
@@ -31,6 +31,12 @@ class AuthDiscord(AuthBase):
         self.required_guilds = args.uas_discord_required_guilds
         self.required_roles = args.uas_discord_required_roles
         self.retrieval_period = int(args.uas_retrieval_period)
+
+        if args.check_concurrent_logins:
+            self.log.info('Concurrent login checks enabled')
+            self.sessions_opened = {}
+        else:
+            self.log.info('Login concurrency checks disabled')
 
     def to_sensitive(self, sens_obj):
         plain = json.dumps(sens_obj, ensure_ascii=False)
@@ -66,6 +72,12 @@ class AuthDiscord(AuthBase):
                 self.log.debug('Auth is valid')
                 self.log.debug(auth_is_valid)
                 if auth_is_valid:
+                    if hasattr(self, 'sessions_opened') and not self.check_concurreny(session):
+                        #check for concurrent logins
+                        userId = session.get('user_id', False)
+                        self.log.info('Detected concurrent login by userID ' + userId)
+                        return redirect('/', code=403)
+
                     self.log.debug('everything checks out, cya')
                     return None
                 else:
@@ -80,10 +92,58 @@ class AuthDiscord(AuthBase):
         return None
 
     def redirect_client_to_auth(self):
-        return redirect('https://discordapp.com/api/oauth2/authorize?client_id=' + self.discord_client_id + '&redirect_uri=' + urllib.quote(self.host + 'auth_callback') + '&response_type=code&scope=identify%20guilds')
+        return redirect('https://discordapp.com/api/oauth2/authorize?client_id=' + self.discord_client_id + '&redirect_uri=' + urllib.quote('http://' + self.host + '/auth_callback') + '&response_type=code&scope=identify%20guilds')
 
     def redirect_to_discord_guild_invite(self):
         return redirect(self.invite_uri)
+
+    def check_session_id_present(self, session):
+        sessionId = session.get('session_id', False)
+        if not sessionId:
+             sessionId = self.generate_random_session_id()
+             session['session_id'] = sessionId
+        return sessionId
+
+    def check_concurreny(self, session):
+        idOfUser = session.get('user_id', False)
+        sessionIdObjectLocal = self.sessions_opened.get(idOfUser, False)
+        sessionId = self.check_session_id_present(session)
+        if not sessionIdObjectLocal:
+            #no sessionIds stored yet...
+            newSessionObject = {}
+            newSessionObject['last_reset'] = time.time()
+            newSessionObject['session_id'] = sessionId
+            self.sessions_opened[idOfUser] = newSessionObject
+            return True
+        else:
+            sessionIdStored = sessionIdObjectLocal.get('session_id', False)
+            if not sessionIdStored:
+                self.log.debug('Could not find a sessionId locally ' + idOfUser)
+                self.sessions_opened[idOfUser]['session_id'] = sessionId
+                #set last_reset as well
+                self.sessions_opened[idOfUser]['last_reset'] = time.time()
+                return True
+            elif sessionIdStored == sessionId:
+                self.log.debug('Session ID stored matches the one of the session ' + idOfUser)
+                return True
+            else:
+                #Session ID does not match the stored one...
+                lastReset = sessionIdObjectLocal.get('last_reset', False)
+                self.log.info(lastReset)
+                self.log.info(time.time())
+                self.log.info(lastReset + 120)
+                if lastReset and (time.time() < lastReset + 120):
+                    self.log.debug('Last reset of ' + idOfUser + ' was within last 2 mins.')
+                    #last reset was within the last 2 minutes...
+                    return False
+                self.sessions_opened[idOfUser]['last_reset'] = time.time()
+                self.sessions_opened[idOfUser].pop('session_id')
+                self.log.debug('Reset ' + idOfUser + ' sessionId stored.')
+                return False
+
+    def generate_random_session_id(self):
+        return ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(10))
+
 
     #Retrieve access and refresh tokens from auth_callback's code and store it in session
     def exchange_code(self, code, session):
@@ -92,7 +152,7 @@ class AuthDiscord(AuthBase):
           'client_secret': self.discord_client_secret,
           'grant_type': 'authorization_code',
           'code': code,
-          'redirect_uri': self.host + "auth_callback"
+          'redirect_uri': 'http://' + self.host + "/auth_callback"
         }
         headers = {
           'Content-Type': 'application/x-www-form-urlencoded'
@@ -121,7 +181,7 @@ class AuthDiscord(AuthBase):
           'client_secret': self.discord_client_secret,
           'grant_type': 'refresh_token',
           'refresh_token': plainAuthObject['refresh_token'],
-          'redirect_uri': self.host + "auth_callback"
+          'redirect_uri': 'http://' + self.host + "/auth_callback"
         }
         headers = {
           'Content-Type': 'application/x-www-form-urlencoded'
@@ -169,6 +229,7 @@ class AuthDiscord(AuthBase):
     def update_requirements(self, session, auth_token):
         self.log.debug("Retrieving guilds and roles")
         updateSuccess = True
+        self.get_user_id(session, auth_token)
         if self.required_guilds:
             self.log.debug("Getting guilds")
             updateSuccess = self.get_user_guilds(session, auth_token)
@@ -196,7 +257,7 @@ class AuthDiscord(AuthBase):
         self.log.debug('Guilds updated')
         return True
 
-    def get_user_guild_roles(self, session, auth_token):
+    def get_user_id(self, session, auth_token):
         headers = {
           'Authorization': 'Bearer ' + auth_token
         }
@@ -210,6 +271,16 @@ class AuthDiscord(AuthBase):
                       r.text)
             return False
         user_id = r.json()['id']
+        session['user_id'] = user_id
+        return True
+
+    def get_user_guild_roles(self, session, auth_token):
+        user_id = session.get('user_id', False)
+        if not user_id and self.get_user_id(session, auth_token):
+            user_id = session.get('user_id')
+        else:
+            self.log.debug('Could not retrieve user_id...')
+            return False
         headers = {
           'Authorization': 'Bot ' + self.discord_bot_token
         }
@@ -235,6 +306,9 @@ class AuthDiscord(AuthBase):
     # Basic session auth check
     #Return (bool, None, encrypted Auth Object) or (Bool, decrypted_auth object, None)
     def valid_session_client_auth(self, req, session):
+        sessionId = session.get('session_id', False)
+        if not sessionId:
+            session['session_id'] = self.generate_random_session_id()
         last_auth_check = session.get('last_auth_check')
         if not last_auth_check:
             #self.log.debug('No previous auth in session')
