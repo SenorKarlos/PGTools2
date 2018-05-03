@@ -151,9 +151,6 @@ class AuthDiscord(AuthBase):
             else:
                 #Session ID does not match the stored one...
                 lastReset = sessionIdObjectLocal.get('last_reset', False)
-                self.log.info(lastReset)
-                self.log.info(time.time())
-                self.log.info(lastReset + 120)
                 if lastReset and (time.time() < lastReset + 120):
                     self.log.debug('Last reset of ' + idOfUser + ' was within last 2 mins.')
                     #last reset was within the last 2 minutes...
