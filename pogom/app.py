@@ -4,13 +4,15 @@
 import calendar
 import logging
 import gc
+import time
 
 from datetime import datetime
 from s2sphere import LatLng
 from bisect import bisect_left
 from flask import (Flask, abort, jsonify, render_template,
                    request, make_response,
-                   send_from_directory, send_file)
+                   send_from_directory, send_file,
+                   redirect, session)
 from flask.json import JSONEncoder
 from flask_compress import Compress
 from pogom.dyn_img import (get_gym_icon, get_pokemon_map_icon,
@@ -25,7 +27,11 @@ from .models import (Pokemon, Gym, Pokestop, ScannedLocation,
                      SpawnPoint)
 from .utils import (get_args, get_pokemon_name, get_pokemon_types,
                     now, dottedQuadToNum)
-from .client_auth import check_auth
+#from .client_auth import (check_auth, exchange_code, to_sensitive,
+#                            get_guilds_and_roles)
+
+from .auth_discord import AuthDiscord
+
 from .transform import transform_from_wgs_to_gcj
 from .blacklist import fingerprints, get_ip_blacklist
 
@@ -76,7 +82,7 @@ class Pogom(Flask):
             self.blacklist = []
             self.blacklist_keys = []
 
-        self.user_auth_code_cache = {}
+        #self.user_auth_code_cache = {}
 
         # Routes
         self.json_encoder = CustomJSONEncoder
@@ -105,6 +111,9 @@ class Pogom(Flask):
         self.route("/scout", methods=['GET'])(self.scout_pokemon)
         self.route("/lure", methods=['GET'])(self.scout_lure)
         self.route("/<statusname>", methods=['GET'])(self.fullmap)
+        if args.user_auth_service:
+            log.info('Discord auth enabled')
+            self.discord_auth = AuthDiscord(args)
 
     def gym_img(self):
         team = request.args.get('team')
@@ -281,6 +290,15 @@ class Pogom(Flask):
             log.debug('Denied access to %s: blacklisted IP.', ip_addr)
             abort(403)
 
+        #Verify auth
+        if args.user_auth_service and request.endpoint != 'auth_callback':
+            #discord_auth = AuthDiscord(args, request.url_root)
+            return self.discord_auth.check_auth(request, session)
+
+
+    def make_session_permanent(self):
+        session.permanent = True
+
     def _ip_is_blacklisted(self, ip):
         if not self.blacklist:
             return False
@@ -329,7 +347,42 @@ class Pogom(Flask):
         return self.get_search_control()
 
     def auth_callback(self, statusname=None):
-        return render_template('auth_callback.html')
+        code = request.args.get('code')
+        if code:
+            resp = make_response(redirect('/'))
+            #set the cookie with the encrypted data...
+            args = get_args()
+            host = args.uas_host_override
+            if not host:
+                host = request.url_root
+
+
+            #TODO: check when last attempt happened/set a counter
+            last_callback = session.get('last_callback')
+            if last_callback and (last_callback + 600) < time.time():
+                #user authed previously (within the last 10 minutes) in the same session
+                abort(403)
+            else:
+                #discord_auth = AuthDiscord(args, request.url_root)
+                sensitiveData = self.discord_auth.exchange_code(code, session)
+                if not sensitiveData:
+                    abort(403)
+                encryptedData = self.discord_auth.to_sensitive(sensitiveData)
+                #let's also get guild IDs and stuff
+                access_token = sensitiveData.get('access_token')
+                if access_token:
+                    #log.debug('Retrieving guilds and roles')
+                     self.discord_auth.update_requirements(session, access_token)
+                    #last_guild_ids = session.get('last_guild_ids')
+
+                #store the encrypted data in both the cookie and the session...
+                #resp.set_cookie(args.user_auth_service +'_auth', sensitiveData)
+                session[args.user_auth_service + '_auth'] = encryptedData
+                #session['userAuthCode'] = code;
+                session['last_callback'] = time.time()
+                return resp
+        else:
+            abort(403)
 
     def fullmap(self, statusname=None):
         self.heartbeat[0] = now()
@@ -396,8 +449,9 @@ class Pogom(Flask):
             self.control_flags['on_demand'].clear()
         d = {}
 
-        auth_redirect = check_auth(args, request, self.user_auth_code_cache)
-        if (auth_redirect):
+        #discord_auth = AuthDiscord(args, request.url_root)
+        auth_redirect = self.discord_auth.check_auth(request, session)
+        if auth_redirect:
             return auth_redirect
         # Request time of this request.
         d['timestamp'] = datetime.utcnow()

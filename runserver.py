@@ -7,6 +7,7 @@ import logging
 import time
 import re
 import ssl
+from datetime import timedelta
 import requests
 
 from distutils.version import StrictVersion
@@ -368,7 +369,9 @@ def main():
         app = Pogom(__name__,
                     root_path=os.path.dirname(
                               os.path.abspath(__file__)).decode('utf8'))
+        app.secret_key = args.secret_signing_key
         app.before_request(app.validate_request)
+        app.before_first_request(app.make_session_permanent)
         app.set_current_location(position)
 
     db = startup_db(app, args.clear_db)
@@ -404,6 +407,11 @@ def main():
                    args=(db_updates_queue, db))
         t.daemon = True
         t.start()
+
+    if args.user_auth_service:
+        log.info(args.user_auth_service + ' authentication enabled')
+    else:
+        log.info('No authentication method enabled')
 
     # Database cleaner; really only need one ever.
     if args.db_cleanup:

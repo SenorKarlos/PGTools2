@@ -588,6 +588,12 @@ def get_args():
                               'PogoAssets root directory.'))
     parser.add_argument('-uas', '--user-auth-service', default=None,
                         help='Force end users to auth to an external service.')
+    parser.add_argument('-ccl', '--check-concurrent-logins', default=False,
+                        action='store_true', help='Check for concurrent logins and disallow them.')
+    parser.add_argument('-ssignkey', '--secret-signing-key', default=None,
+                        help='Secret Key to sign session cookies. Use a random string.')
+    parser.add_argument('-senckey', '--secret-encryption-key', default=None,
+                        help='Secret Key to encrypt sensitive data in the session. Use a random string.')
     parser.add_argument('-uascid', '--uas-client-id', default=None,
                         help='Client ID for user external authentication.')
     parser.add_argument('-uascs', '--uas-client-secret', default=None,
@@ -607,6 +613,10 @@ def get_args():
     parser.add_argument('-uasdbt', '--uas-discord-bot-token', default=None,
                         help=('Discord Bot Token for user ' +
                               'external authentication.'))
+    parser.add_argument('-uasrperiod', '--uas-retrieval-period', default=300,
+                        help=('The time to pass between Discord API requests ' +
+                              'to get guild IDs and roles to be stored in ' +
+                              ' session. Basically affects when you kick someone'))
     rarity = parser.add_argument_group('Dynamic Rarity')
     rarity.add_argument('-Rh', '--rarity-hours',
                         help=('Number of hours of Pokemon data to use' +
@@ -638,6 +648,28 @@ def get_args():
     args.log_filename = strftime(args.log_filename)
     args.log_filename = args.log_filename.replace('<sn>', '<SN>')
     args.log_filename = args.log_filename.replace('<SN>', args.status_name)
+
+    if args.user_auth_service and args.user_auth_service == "Discord":
+        #Check enc/signing keys and other required values
+        if args.secret_encryption_key is None:
+            print("uas-secret-encryption-key missing")
+            sys.exit(1)
+        elif args.secret_signing_key is None:
+            print("uas-secret-signing-key missing")
+            sys.exit(1)
+        elif args.secret_signing_key == args.secret_encryption_key:
+            print("uas-secret-signing-key and uas-secret-encryption-key " +
+                        "have to be different")
+            sys.exit(1)
+        elif args.uas_client_id is None:
+            print("uas-client-id missing")
+            sys.exit(1)
+        elif args.uas_client_secret is None:
+            print("uas-client-secret missing")
+            sys.exit(1)
+    elif args.user_auth_service:
+        print("Invalid authentication method")
+        sys.exit(1)
 
     if args.only_server:
         if args.location is None:
@@ -1531,8 +1563,8 @@ def dynamic_rarity_refresher():
     hours = args.rarity_hours
     root_path = args.root_path
 
-    rarities_path = os.path.join(
-        root_path, 'static/dist/data/' + args.rarity_filename + '.json')
+    rarities_path = os.path.join(root_path,
+    'static/dist/data/' + args.rarity_filename + '.json')
 
     update_frequency_mins = args.rarity_update_frequency
     refresh_time_sec = update_frequency_mins * 60
