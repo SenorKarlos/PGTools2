@@ -13,6 +13,7 @@ import random
 from flask import redirect
 from requests.exceptions import HTTPError
 from rm_crypto import RmCrypto
+from threading import Thread, Event
 
 from auth_base import AuthBase
 
@@ -35,8 +36,26 @@ class AuthDiscord(AuthBase):
         if args.check_concurrent_logins:
             self.log.info('Concurrent login checks enabled')
             self.sessions_opened = {}
+            # Cleanup of the cache to get rid of old entries...
+            t = Thread(target=self.clean_concurrency_cache_loop, name='concurrency-cleaner', args=())
+            t.daemon = True
+            t.start()
         else:
             self.log.info('Login concurrency checks disabled')
+
+    def clean_concurrency_cache_loop(self):
+        self.log.debug('Running session cache cleanup thread')
+        while True:
+            time.sleep(600)
+            self.log.debug('Running session cache cleanup')
+            #search the sessions_opened for information older than 10minutes...
+            for userId, sessionObject in self.sessions_opened.items():
+                self.log.debug('Checking userId' + userId)
+                if time.time() - sessionObject['last_check'] > 600:
+                    self.log.debig('Removed userId ' + userId + ' from session cache')
+                    self.sessions_opened.pop(userId)
+
+
 
     def to_sensitive(self, sens_obj):
         plain = json.dumps(sens_obj, ensure_ascii=False)
@@ -111,6 +130,7 @@ class AuthDiscord(AuthBase):
         if not sessionIdObjectLocal:
             #no sessionIds stored yet...
             newSessionObject = {}
+            newSessionObject['last_check'] = time.time()
             newSessionObject['last_reset'] = time.time()
             newSessionObject['session_id'] = sessionId
             self.sessions_opened[idOfUser] = newSessionObject
@@ -120,11 +140,13 @@ class AuthDiscord(AuthBase):
             if not sessionIdStored:
                 self.log.debug('Could not find a sessionId locally ' + idOfUser)
                 self.sessions_opened[idOfUser]['session_id'] = sessionId
+                self.sessions_opened[idOfUser]['last_check'] = time.time()
                 #set last_reset as well
                 self.sessions_opened[idOfUser]['last_reset'] = time.time()
                 return True
             elif sessionIdStored == sessionId:
                 self.log.debug('Session ID stored matches the one of the session ' + idOfUser)
+                self.sessions_opened[idOfUser]['last_check'] = time.time()
                 return True
             else:
                 #Session ID does not match the stored one...
@@ -136,6 +158,7 @@ class AuthDiscord(AuthBase):
                     self.log.debug('Last reset of ' + idOfUser + ' was within last 2 mins.')
                     #last reset was within the last 2 minutes...
                     return False
+                self.sessions_opened[idOfUser]['last_check'] = time.time()
                 self.sessions_opened[idOfUser]['last_reset'] = time.time()
                 self.sessions_opened[idOfUser].pop('session_id')
                 self.log.debug('Reset ' + idOfUser + ' sessionId stored.')
@@ -220,6 +243,8 @@ class AuthDiscord(AuthBase):
             session.pop('last_guild_roles')
         if session.get('last_callback'):
             session.pop('last_callback')
+        if session.get('user_id'):
+            session.pop('user_id')
 
     ################
     #Getters for values to check against
