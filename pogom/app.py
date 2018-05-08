@@ -10,7 +10,7 @@ from s2sphere import LatLng
 from bisect import bisect_left
 from flask import (Flask, abort, jsonify, render_template,
                    request, make_response,
-                   send_from_directory, send_file)
+                   send_from_directory, send_file, redirect, session)
 from flask.json import JSONEncoder
 from flask_compress import Compress
 from pogom.dyn_img import (get_gym_icon, get_pokemon_map_icon,
@@ -20,12 +20,12 @@ from pogom.pgscout import scout_error, pgscout_encounter, perform_lure
 
 from pogom.weather import (get_weather_cells,
                            get_s2_coverage, get_weather_alerts)
+from .userAuth import DiscordAPI
 from .models import (Pokemon, Gym, Pokestop, ScannedLocation,
                      MainWorker, WorkerStatus, Token, HashKeys,
                      SpawnPoint)
 from .utils import (get_args, get_pokemon_name, get_pokemon_types,
                     now, dottedQuadToNum)
-from .client_auth import check_auth
 from .transform import transform_from_wgs_to_gcj
 from .blacklist import fingerprints, get_ip_blacklist
 
@@ -62,7 +62,7 @@ class Pogom(Flask):
 
         args = get_args()
 
-        # Global blist
+        # Global blacklist
         if not args.disable_blacklist:
             log.info('Retrieving blacklist...')
             self.blacklist = get_ip_blacklist()
@@ -76,7 +76,11 @@ class Pogom(Flask):
             self.blacklist = []
             self.blacklist_keys = []
 
-        self.user_auth_code_cache = {}
+        if args.user_auth:
+            # Setup user authentication
+            self.discord_api = DiscordAPI(args)
+            self.secret_key = args.user_auth_secret_key
+            self.permanent_session_lifetime = 7 * 24 * 3600
 
         # Routes
         self.json_encoder = CustomJSONEncoder
@@ -229,6 +233,30 @@ class Pogom(Flask):
         }
         self.db_updates_queue.put((Pokemon, update_data))
 
+    def auth_callback(self):
+        session.permanent = True
+        code = request.args.get('code')
+        if not code:
+            log.error('User authentication code not found in callback.')
+            abort(403)
+
+        response = self.discord_api.exchange_code(code)
+        if not response:
+            log.error('Failed OAuth request for user authentication.')
+            abort(403)
+
+        valid = self.discord_api.validate_auth(session, response)
+        if not valid['auth'] and not valid['url']:
+            abort(403)
+        elif not valid['auth']:
+            return make_response(redirect(valid['url']))
+
+        return make_response(redirect('/'))
+
+    def auth_logout(self):
+        session.clear()
+        return make_response(redirect('/'))
+
     def render_robots_txt(self):
         return render_template('robots.txt')
 
@@ -238,12 +266,12 @@ class Pogom(Flask):
     def get_bookmarklet(self):
         args = get_args()
         return render_template('bookmarklet.html',
-                               domain=args.manual_captcha_domain)
+                               domain=args.external_hostname)
 
     def render_inject_js(self):
         args = get_args()
         src = render_template('inject.js',
-                              domain=args.manual_captcha_domain,
+                              domain=args.external_hostname,
                               timer=args.manual_captcha_refresh)
 
         response = make_response(src)
@@ -280,6 +308,19 @@ class Pogom(Flask):
         if self._ip_is_blacklisted(ip_addr):
             log.debug('Denied access to %s: blacklisted IP.', ip_addr)
             abort(403)
+
+        # Verify user authentication.
+        if not args.user_auth:
+            return
+        if request.endpoint == 'auth_callback':
+            return
+        if request.endpoint == 'submit_token':
+            return
+        if request.endpoint == 'get_account_stats':
+            return
+
+        return self.discord_api.check_auth(
+            session, request.headers.get('User-Agent'), ip_addr)
 
     def _ip_is_blacklisted(self, ip):
         if not self.blacklist:
@@ -327,9 +368,6 @@ class Pogom(Flask):
         else:
             return jsonify({'message': 'invalid use of api'})
         return self.get_search_control()
-
-    def auth_callback(self, statusname=None):
-        return render_template('auth_callback.html')
 
     def fullmap(self, statusname=None):
         self.heartbeat[0] = now()
@@ -394,11 +432,9 @@ class Pogom(Flask):
         args = get_args()
         if args.on_demand_timeout > 0:
             self.control_flags['on_demand'].clear()
+
         d = {}
 
-        auth_redirect = check_auth(args, request, self.user_auth_code_cache)
-        if (auth_redirect):
-            return auth_redirect
         # Request time of this request.
         d['timestamp'] = datetime.utcnow()
 

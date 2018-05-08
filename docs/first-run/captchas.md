@@ -12,15 +12,15 @@ If you want to enable this behavior you need to specify:
 ## Enabling Manual/Hybrid Captcha Solving:
 You can setup RocketMap to enable manual captcha solving. This feature uses common web browsers to let users rescue captcha'd accounts.
 We use a JavaScript [bookmarklet](https://en.wikipedia.org/wiki/Bookmarklet) that triggers a captcha which allows the user to solve it in its web browser.
-The result is then forwarded to the RocketMap instance running at the URL specified by `-mcd`.
+The result is then forwarded to the RocketMap instance running at the URL specified by `-eh`.
 
-Please remember that if you want your map to be accessed from the exterior you need to setup `--host` and `--manual-captcha-domain` to something like `http://<your-ip>:<port>` or `http://<your-domain>:<port>`.
+Please remember that if you want your map to be accessed from the exterior you need to setup `--host` and `--external-hostname` to something like `http://<your-ip>:<port>` or `http://<your-domain>:<port>`.
 
 In order to enable manual captcha solving we need the following parameters:
 
 - Enable captcha solving: `-cs` / `--captcha-solving`
 
-- Manual captcha domain: `-mcd` / `--manual-captcha-domain`
+- External hostname: `-eh` / `--external-hostname`
 
 - Provide a status name: `-sn` / `--status-name`
 
@@ -43,7 +43,7 @@ The "magic" happens when you **click the bookmarklet a second time** (while rema
 
 ![bookmarklet page](../_static/img/captchas-page.png)
 
-If `-mcd` / `--manual-captcha-domain` is correct, a similar page to the one above will appear and some statistics should be visible.
+If `-eh` / `--external-hostname` is correct, a similar page to the one above will appear and some statistics should be visible.
 
 - **Working accounts**: shows the total of available accounts (includes captcha'd accounts)
 
@@ -88,5 +88,5 @@ By default `--manual-captcha-timeout` is set to `0` which disables hybrid mode a
     status-name: My Server 1
     captcha-solving: True
     captcha-key: <2Captcha API Key>
-    manual-captcha-domain: http://<mydomain.com>:<port>
+    external-hostname: http://<mydomain.com>:<port>
     manual-captcha-timeout: 1800

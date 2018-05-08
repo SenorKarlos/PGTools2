@@ -37,6 +37,8 @@
 
 #host:                          # Address to listen on (default='127.0.0.1')
 #port:                          # Port to listen on (default=5000)
+#external-hostname:             # Hostname used for external requests.
+                                # Must be accessible from the exterior. (default="http://127.0.0.1:5000")
 #accountcsv:                    # Load accounts instead from a CSV file containing "auth-service,username,password" lines.
 #speed-scan                     # Use speed-scan as the search scheduler.
 #location:                      # Location, can be an address or coordinates.
@@ -208,32 +210,33 @@
 #captcha-key:                   # 2Captcha API key.
 #captcha-dsk:                   # PokemonGo captcha data-sitekey. Don't change this if not explicitly needed due to recent changes.
                                 # (default="6LeeTScTAAAAADqvhqVMhPpr_vB9D364Ia-1dSgK")
-#manual-captcha-domain:         # Enables the option to manual solve Captcha.
-                                # Enter domain where captcha tokens will be sent. (default="http://127.0.0.1:5000")
 #manual-captcha-refresh:        # Time available before captcha page refreshes. (default=30)
 #manual-captcha-timeout:        # Maximum time captchas will wait for manual captcha solving.
                                 # On timeout, if enabled, 2Captcha will be used to solve captcha. (default=0)
 
 # User Auth Settings
 ################
-# If you want users to auth to Discord prior to accessing server, set user-auth-service to Discord, create an app here:
-# https://discordapp.com/developers/applications/me and add a redrect uri to your the application in this format: https://mysrv.com/auth_callback.
-# If you get an error on the discord page when authenticating, and the redirect_uri in the url doesn't match your servers actual web address
-# override it by specifying uas-host-override, e.g. https://mysrv.com/
-# To require a user to be in one of your guilds (servers) to gain access, specify the required guild ids and an invite url to send them to if
-# they are not in any of the required guilds.
-# To require a user be in specific roles in the guild to gain access, add a bot to the application at the above developer application page,
-# then add that bot to your guild (server) using this link: https://discordapp.com/api/oauth2/authorize?client_id=YOUR_CLIENT_ID&scope=bot
-# Note that the required-roles feature requires a configuration with a single required guild.
+# If you want users to authenticate using Discord before accessing to your map, enable flag "--user-auth" and follow the next steps:
+# 1. Create a Discord App: https://discordapp.com/developers/applications/me
+# 2. Add a "Redirect URI" to your the application in this format: https://<EXTERNAL-HOSTNAME>/auth_callback
+# 3. Retrieve the generated Client ID and Client Secret and setup your configuration file to use them.
+# 4. If you want to check if user has a particular role you'll need to add a bot to your Discord App.
+# 4.1. Allow bot access to your server: https://discordapp.com/api/oauth2/authorize?client_id=<CLIENT_ID>&scope=bot%20guilds
+# 5. To require a user to be in one of your guilds (servers) to gain access, specify the required guild ID and an invitation link.
+# 6. To require a user to have a specific role in the guild to gain access, specify the required role name(s) and an invitation link.
+# Detailed guide and more information: docs/extra/auth-discord.md
 
-#user-auth-service:             # Force end users to auth to an external service. Supported: Discord
-#uas-client-id:                 # OAuth2 Client ID.
-#uas-client-secret:             # OAuth2 Client Secret. Client should have auth callback url of <yourserverurl>/auth_callback
-#uas-host-override              # override auth redirect host.
-#uas-discord-required-guilds    # (Optional) If guild ID(s) are specified, user must be in at least one discord guild (server) to access map. Comma separated if multiple.
-#uas-discord-guild-invite       # Invite link to redirect user to if user is not in above guild(s)
-#uas-discord-required-roles     # (Optional) If specified, user must be in one of these discord roles. Comma separated list of role ids. Requires bot configured below. Only supports single required guild.
-#uas-discord-bot-token          # Token for bot with access to your guild. Only required for required-roles feature
+#user-auth:                     # Force end users to auth to an external service. Supported: Discord
+#user-auth-block-concurrent:    # Block users for a predefined amount of time. Default: 0 (disabled).
+#user-auth-secret-key:          # Secret key to encrypt session cookies. Use a randomly generated string.
+#user-auth-client-id:           # Discord App - OAuth2 Client ID.
+#user-auth-client-secret:       # Discord App - OAuth2 Client Secret.
+#user-auth-guild-required:      # (Optional) If guild ID is specified, user must have joined that guild (server) to access the map.
+#user-auth-guild-invite:        # Invite link to redirect users if they haven't joined the above guild.
+#user-auth-role-required:       # (Optional) If specified, user must have at least one of these Discord roles. Requires a Discord App Bot to be configured with "Manage Roles" permissions.
+#user-auth-role-invite:         # Invite link to redirect users if haven't got any of the above roles.
+#user-auth-bot-token:           # Token from the Discord App Bot with access to your guild (server). Only needed if "user-auth-role-required" is used.
+
 
 # Misc
 ######
