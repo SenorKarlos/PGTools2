@@ -23,7 +23,7 @@ from colorlog import ColoredFormatter
 from pogom.app import Pogom
 from pogom.utils import (get_args, now, gmaps_reverse_geolocate, init_args,
                          log_resource_usage_loop, get_debug_dump_link,
-                         dynamic_rarity_refresher)
+                         dynamic_rarity_refresher, get_pos_by_name)
 from pogom.altitude import get_gmaps_altitude
 
 from pogom.models import (init_database, create_tables, drop_tables,
@@ -52,9 +52,8 @@ if not (args.verbose):
     console.setLevel(logging.INFO)
 
 formatter = ColoredFormatter(
-    #'%(asctime)s [%(threadName)16s][%(levelname)8s] %(message)s',
-
-    '%(log_color)s [%(asctime)s] [%(threadName)16s] [%(module)14s] [%(levelname)8s] %(message)s',
+    '%(log_color)s [%(asctime)s] [%(threadName)16s] [%(module)14s]' +
+    ' [%(levelname)8s] %(message)s',
     datefmt='%m-%d %H:%M:%S',
     reset=True,
     log_colors={
@@ -90,7 +89,7 @@ log.addHandler(stderr_hdlr)
 # Assert pgoapi is installed.
 try:
     import pgoapi
-    from pgoapi import PGoApi, utilities as util
+    from pgoapi import PGoApi
 except ImportError:
     log.critical(
         "It seems `pgoapi` is not installed. Try running " +
@@ -263,12 +262,13 @@ def extract_coordinates(location):
         position = (float(res.group(1)), float(res.group(2)), 0)
     else:
         log.debug('Looking up coordinates in API')
-        position = util.get_pos_by_name(location)
+        position = get_pos_by_name(location)
 
     if position is None or not any(position):
         log.error("Location not found: '{}'".format(location))
         sys.exit()
     return position
+
 
 def main():
     # Patch threading to make exceptions catchable.
@@ -292,16 +292,19 @@ def main():
 
     # Initialize Mr. Mime library
     mrmime_cfg = {
-        # We don't want exceptions on captchas because we handle them differently.
+        # We don't want exceptions on captchas because
+        # we handle them differently.
         'exception_on_captcha': False,
         # MrMime shouldn't jitter
         'jitter_gmo': False,
         'pgpool_system_id': args.status_name
     }
-    # Don't clear PGPool URL if it's not given in config but set in MrMime config JSON
+    # Don't clear PGPool URL if it's not given in config
+    # but set in MrMime config JSON
     if args.pgpool_url:
         mrmime_cfg['pgpool_url'] = args.pgpool_url
-    mrmime_config_file = os.path.join(os.path.dirname(__file__), 'config/mrmime_config.json')
+    mrmime_config_file = os.path.join(os.path.dirname(__file__),
+                                      'config/mrmime_config.json')
     init_mr_mime(config_file=mrmime_config_file, user_cfg=mrmime_cfg)
 
     # Abort if only-server and no-server are used together
@@ -321,7 +324,7 @@ def main():
     # Let's not forget to run Grunt / Only needed when running with webserver.
     if not args.no_server and not validate_assets(args):
         sys.exit(1)
- 
+
     if args.no_version_check and not args.only_server:
         log.warning('You are running RocketMap in No Version Check mode. '
                     "If you don't know what you're doing, this mode "
@@ -329,23 +332,20 @@ def main():
                     'receive support running in NoVC mode. '
                     'You have been warned.')
 
-
     position = extract_coordinates(args.location)
     # Use the latitude and longitude to get the local altitude from Google.
-    (altitude, status) = get_gmaps_altitude(position[0], position[1],
-                                            args.gmaps_key)
+    (altitude, results) = get_gmaps_altitude(position[0], position[1])
+
     if altitude is not None:
         log.debug('Local altitude is: %sm.', altitude)
         position = (position[0], position[1], altitude)
     else:
-        if status == 'REQUEST_DENIED':
+        if results == 'REQUEST_DENIED':
             log.error(
-                'Google API Elevation request was denied. You probably ' +
-                'forgot to enable elevation api in https://console.' +
-                'developers.google.com/apis/api/elevation_backend/')
+                'OSM API Elevation request was denied.')
             sys.exit()
         else:
-            log.error('Unable to retrieve altitude from Google APIs' +
+            log.error('Unable to retrieve altitude from OSM APIs' +
                       'setting to 0')
 
     log.info('Parsed location is: %.4f/%.4f/%.4f (lat/lng/alt).',
@@ -368,9 +368,8 @@ def main():
                               os.path.abspath(__file__)).decode('utf8'))
         app.before_request(app.validate_request)
         app.set_current_location(position)
-        
-    db = startup_db(app, args.clear_db)
 
+    db = startup_db(app, args.clear_db)
 
     # Control the search status (running or not) across threads.
     control_flags = {
@@ -405,7 +404,7 @@ def main():
         t.start()
 
     # Database cleaner; really only need one ever.
-    if args.enable_clean:
+    if args.db_cleanup:
         t = Thread(target=clean_db_loop, name='db-cleaner', args=(args,))
         t.daemon = True
         t.start()
@@ -451,7 +450,6 @@ def main():
         args.player_locale = PlayerLocale.get_locale(args.location)
         if not args.player_locale:
             args.player_locale = gmaps_reverse_geolocate(
-                args.gmaps_key,
                 args.locale,
                 str(position[0]) + ', ' + str(position[1]))
             db_player_locale = {
@@ -466,7 +464,6 @@ def main():
                 'Existing player locale has been retrieved from the DB.')
 
         # Gather the Pokemon!
-
 
         argset = (args, new_location_queue, control_flags,
                   heartbeat, db_updates_queue, wh_updates_queue)
@@ -525,9 +522,7 @@ def set_log_and_verbosity(log):
     if not os.path.exists(args.log_path):
         os.mkdir(args.log_path)
     if not args.no_file_logs:
-        date = strftime('%Y%m%d_%H%M')
-        filename = os.path.join(
-            args.log_path, '{}_{}.log'.format(date, args.status_name))
+        filename = os.path.join(args.log_path, args.log_filename)
         filelog = logging.FileHandler(filename)
         filelog.setFormatter(logging.Formatter(
             '%(asctime)s [%(threadName)18s][%(module)14s][%(levelname)8s] ' +

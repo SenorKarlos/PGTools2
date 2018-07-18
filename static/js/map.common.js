@@ -1,801 +1,17 @@
+/*global i8ln, L, markers, markersnotify*/
 /* eslint no-unused-vars: "off" */
+function pokemonSprites(pokemonID) {
+    var sprite = {
+        columns: 28,
+        iconWidth: 80,
+        iconHeight: 80,
+        spriteWidth: 2240,
+        spriteHeight: 1440,
+        filename: 'static/icons/' + pokemonID + '.png',
+        name: 'High-Res'
+    }
 
-var noLabelsStyle = [{
-    featureType: 'poi',
-    elementType: 'labels',
-    stylers: [{
-        visibility: 'off'
-    }]
-}, {
-    'featureType': 'all',
-    'elementType': 'labels.text.stroke',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}, {
-    'featureType': 'all',
-    'elementType': 'labels.text.fill',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}, {
-    'featureType': 'all',
-    'elementType': 'labels.icon',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}]
-var light2Style = [{
-    'elementType': 'geometry',
-    'stylers': [{
-        'hue': '#ff4400'
-    }, {
-        'saturation': -68
-    }, {
-        'lightness': -4
-    }, {
-        'gamma': 0.72
-    }]
-}, {
-    'featureType': 'road',
-    'elementType': 'labels.icon'
-}, {
-    'featureType': 'landscape.man_made',
-    'elementType': 'geometry',
-    'stylers': [{
-        'hue': '#0077ff'
-    }, {
-        'gamma': 3.1
-    }]
-}, {
-    'featureType': 'water',
-    'stylers': [{
-        'hue': '#00ccff'
-    }, {
-        'gamma': 0.44
-    }, {
-        'saturation': -33
-    }]
-}, {
-    'featureType': 'poi.park',
-    'stylers': [{
-        'hue': '#44ff00'
-    }, {
-        'saturation': -23
-    }]
-}, {
-    'featureType': 'water',
-    'elementType': 'labels.text.fill',
-    'stylers': [{
-        'hue': '#007fff'
-    }, {
-        'gamma': 0.77
-    }, {
-        'saturation': 65
-    }, {
-        'lightness': 99
-    }]
-}, {
-    'featureType': 'water',
-    'elementType': 'labels.text.stroke',
-    'stylers': [{
-        'gamma': 0.11
-    }, {
-        'weight': 5.6
-    }, {
-        'saturation': 99
-    }, {
-        'hue': '#0091ff'
-    }, {
-        'lightness': -86
-    }]
-}, {
-    'featureType': 'transit.line',
-    'elementType': 'geometry',
-    'stylers': [{
-        'lightness': -48
-    }, {
-        'hue': '#ff5e00'
-    }, {
-        'gamma': 1.2
-    }, {
-        'saturation': -23
-    }]
-}, {
-    'featureType': 'transit',
-    'elementType': 'labels.text.stroke',
-    'stylers': [{
-        'saturation': -64
-    }, {
-        'hue': '#ff9100'
-    }, {
-        'lightness': 16
-    }, {
-        'gamma': 0.47
-    }, {
-        'weight': 2.7
-    }]
-}]
-var darkStyle = [{
-    'featureType': 'all',
-    'elementType': 'labels.text.fill',
-    'stylers': [{
-        'saturation': 36
-    }, {
-        'color': '#b39964'
-    }, {
-        'lightness': 40
-    }]
-}, {
-    'featureType': 'all',
-    'elementType': 'labels.text.stroke',
-    'stylers': [{
-        'visibility': 'on'
-    }, {
-        'color': '#000000'
-    }, {
-        'lightness': 16
-    }]
-}, {
-    'featureType': 'all',
-    'elementType': 'labels.icon',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}, {
-    'featureType': 'administrative',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#000000'
-    }, {
-        'lightness': 20
-    }]
-}, {
-    'featureType': 'administrative',
-    'elementType': 'geometry.stroke',
-    'stylers': [{
-        'color': '#000000'
-    }, {
-        'lightness': 17
-    }, {
-        'weight': 1.2
-    }]
-}, {
-    'featureType': 'landscape',
-    'elementType': 'geometry',
-    'stylers': [{
-        'color': '#000000'
-    }, {
-        'lightness': 20
-    }]
-}, {
-    'featureType': 'poi',
-    'elementType': 'geometry',
-    'stylers': [{
-        'color': '#000000'
-    }, {
-        'lightness': 21
-    }]
-}, {
-    'featureType': 'road.highway',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#000000'
-    }, {
-        'lightness': 17
-    }]
-}, {
-    'featureType': 'road.highway',
-    'elementType': 'geometry.stroke',
-    'stylers': [{
-        'color': '#000000'
-    }, {
-        'lightness': 29
-    }, {
-        'weight': 0.2
-    }]
-}, {
-    'featureType': 'road.arterial',
-    'elementType': 'geometry',
-    'stylers': [{
-        'color': '#000000'
-    }, {
-        'lightness': 18
-    }]
-}, {
-    'featureType': 'road.local',
-    'elementType': 'geometry',
-    'stylers': [{
-        'color': '#181818'
-    }, {
-        'lightness': 16
-    }]
-}, {
-    'featureType': 'transit',
-    'elementType': 'geometry',
-    'stylers': [{
-        'color': '#000000'
-    }, {
-        'lightness': 19
-    }]
-}, {
-    'featureType': 'water',
-    'elementType': 'geometry',
-    'stylers': [{
-        'lightness': 17
-    }, {
-        'color': '#525252'
-    }]
-}]
-var pGoStyle = [{
-    'featureType': 'landscape.man_made',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#a1f199'
-    }]
-}, {
-    'featureType': 'landscape.natural.landcover',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#37bda2'
-    }]
-}, {
-    'featureType': 'landscape.natural.terrain',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#37bda2'
-    }]
-}, {
-    'featureType': 'poi.attraction',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'visibility': 'on'
-    }]
-}, {
-    'featureType': 'poi.business',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#e4dfd9'
-    }]
-}, {
-    'featureType': 'poi.business',
-    'elementType': 'labels.icon',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}, {
-    'featureType': 'poi.park',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#37bda2'
-    }]
-}, {
-    'featureType': 'road',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#84b09e'
-    }]
-}, {
-    'featureType': 'road',
-    'elementType': 'geometry.stroke',
-    'stylers': [{
-        'color': '#fafeb8'
-    }, {
-        'weight': '1.25'
-    }]
-}, {
-    'featureType': 'road.highway',
-    'elementType': 'labels.icon',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}, {
-    'featureType': 'water',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#5ddad6'
-    }]
-}]
-var light2StyleNoLabels = [{
-    'elementType': 'geometry',
-    'stylers': [{
-        'hue': '#ff4400'
-    }, {
-        'saturation': -68
-    }, {
-        'lightness': -4
-    }, {
-        'gamma': 0.72
-    }]
-}, {
-    'featureType': 'road',
-    'elementType': 'labels.icon'
-}, {
-    'featureType': 'landscape.man_made',
-    'elementType': 'geometry',
-    'stylers': [{
-        'hue': '#0077ff'
-    }, {
-        'gamma': 3.1
-    }]
-}, {
-    'featureType': 'water',
-    'stylers': [{
-        'hue': '#00ccff'
-    }, {
-        'gamma': 0.44
-    }, {
-        'saturation': -33
-    }]
-}, {
-    'featureType': 'poi.park',
-    'stylers': [{
-        'hue': '#44ff00'
-    }, {
-        'saturation': -23
-    }]
-}, {
-    'featureType': 'water',
-    'elementType': 'labels.text.fill',
-    'stylers': [{
-        'hue': '#007fff'
-    }, {
-        'gamma': 0.77
-    }, {
-        'saturation': 65
-    }, {
-        'lightness': 99
-    }]
-}, {
-    'featureType': 'water',
-    'elementType': 'labels.text.stroke',
-    'stylers': [{
-        'gamma': 0.11
-    }, {
-        'weight': 5.6
-    }, {
-        'saturation': 99
-    }, {
-        'hue': '#0091ff'
-    }, {
-        'lightness': -86
-    }]
-}, {
-    'featureType': 'transit.line',
-    'elementType': 'geometry',
-    'stylers': [{
-        'lightness': -48
-    }, {
-        'hue': '#ff5e00'
-    }, {
-        'gamma': 1.2
-    }, {
-        'saturation': -23
-    }]
-}, {
-    'featureType': 'transit',
-    'elementType': 'labels.text.stroke',
-    'stylers': [{
-        'saturation': -64
-    }, {
-        'hue': '#ff9100'
-    }, {
-        'lightness': 16
-    }, {
-        'gamma': 0.47
-    }, {
-        'weight': 2.7
-    }]
-}, {
-    'featureType': 'all',
-    'elementType': 'labels.text.stroke',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}, {
-    'featureType': 'all',
-    'elementType': 'labels.text.fill',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}, {
-    'featureType': 'all',
-    'elementType': 'labels.icon',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}]
-var darkStyleNoLabels = [{
-    'featureType': 'all',
-    'elementType': 'labels.text.fill',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}, {
-    'featureType': 'all',
-    'elementType': 'labels.text.stroke',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}, {
-    'featureType': 'all',
-    'elementType': 'labels.icon',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}, {
-    'featureType': 'administrative',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#000000'
-    }, {
-        'lightness': 20
-    }]
-}, {
-    'featureType': 'administrative',
-    'elementType': 'geometry.stroke',
-    'stylers': [{
-        'color': '#000000'
-    }, {
-        'lightness': 17
-    }, {
-        'weight': 1.2
-    }]
-}, {
-    'featureType': 'landscape',
-    'elementType': 'geometry',
-    'stylers': [{
-        'color': '#000000'
-    }, {
-        'lightness': 20
-    }]
-}, {
-    'featureType': 'poi',
-    'elementType': 'geometry',
-    'stylers': [{
-        'color': '#000000'
-    }, {
-        'lightness': 21
-    }]
-}, {
-    'featureType': 'road.highway',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#000000'
-    }, {
-        'lightness': 17
-    }]
-}, {
-    'featureType': 'road.highway',
-    'elementType': 'geometry.stroke',
-    'stylers': [{
-        'color': '#000000'
-    }, {
-        'lightness': 29
-    }, {
-        'weight': 0.2
-    }]
-}, {
-    'featureType': 'road.arterial',
-    'elementType': 'geometry',
-    'stylers': [{
-        'color': '#000000'
-    }, {
-        'lightness': 18
-    }]
-}, {
-    'featureType': 'road.local',
-    'elementType': 'geometry',
-    'stylers': [{
-        'color': '#181818'
-    }, {
-        'lightness': 16
-    }]
-}, {
-    'featureType': 'transit',
-    'elementType': 'geometry',
-    'stylers': [{
-        'color': '#000000'
-    }, {
-        'lightness': 19
-    }]
-}, {
-    'featureType': 'water',
-    'elementType': 'geometry',
-    'stylers': [{
-        'lightness': 17
-    }, {
-        'color': '#525252'
-    }]
-}]
-var pGoStyleNoLabels = [{
-    'featureType': 'landscape.man_made',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#a1f199'
-    }]
-}, {
-    'featureType': 'landscape.natural.landcover',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#37bda2'
-    }]
-}, {
-    'featureType': 'landscape.natural.terrain',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#37bda2'
-    }]
-}, {
-    'featureType': 'poi.attraction',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'visibility': 'on'
-    }]
-}, {
-    'featureType': 'poi.business',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#e4dfd9'
-    }]
-}, {
-    'featureType': 'poi.business',
-    'elementType': 'labels.icon',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}, {
-    'featureType': 'poi.park',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#37bda2'
-    }]
-}, {
-    'featureType': 'road',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#84b09e'
-    }]
-}, {
-    'featureType': 'road',
-    'elementType': 'geometry.stroke',
-    'stylers': [{
-        'color': '#fafeb8'
-    }, {
-        'weight': '1.25'
-    }]
-}, {
-    'featureType': 'road.highway',
-    'elementType': 'labels.icon',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}, {
-    'featureType': 'water',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#5ddad6'
-    }]
-}, {
-    'featureType': 'all',
-    'elementType': 'labels.text.stroke',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}, {
-    'featureType': 'all',
-    'elementType': 'labels.text.fill',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}, {
-    'featureType': 'all',
-    'elementType': 'labels.icon',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}]
-var pGoStyleDay = [{
-    'featureType': 'landscape.man_made',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#99f291'
-    }]
-}, {
-    'featureType': 'landscape.natural.landcover',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#00af8f'
-    }]
-}, {
-    'featureType': 'landscape.natural.terrain',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#00af8f'
-    }]
-}, {
-    'featureType': 'landscape.natural',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#00af8f'
-    }]
-}, {
-    'featureType': 'poi.attraction',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'visibility': 'on'
-    }]
-}, {
-    'featureType': 'poi.business',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#e4dfd9'
-    }]
-}, {
-    'featureType': 'poi.business',
-    'elementType': 'labels.icon',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}, {
-    'featureType': 'poi.park',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#00af8f'
-    }]
-}, {
-    'featureType': 'road',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#7eb2a4'
-    }]
-}, {
-    'featureType': 'road',
-    'elementType': 'geometry.stroke',
-    'stylers': [{
-        'color': '#ffff92'
-    }, {
-        'weight': '2'
-    }]
-}, {
-    'featureType': 'road.highway',
-    'elementType': 'labels.icon',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}, {
-    'featureType': 'water',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#1688da'
-    }]
-}, {
-    'featureType': 'poi.attraction',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#e4fdee'
-    }]
-}, {
-    'featureType': 'poi.sports_complex',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#d4ffbc'
-    }]
-}]
-var pGoStyleNight = [{
-    'featureType': 'landscape.man_made',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#12a085'
-    }]
-}, {
-    'featureType': 'landscape.natural.landcover',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#02706a'
-    }]
-}, {
-    'featureType': 'landscape.natural.terrain',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#02706a'
-    }]
-}, {
-    'featureType': 'landscape.natural',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#02706a'
-    }]
-}, {
-    'featureType': 'poi',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#6da298'
-    }]
-}, {
-    'featureType': 'poi.medical',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#6da298'
-    }]
-}, {
-    'featureType': 'poi.attraction',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'visibility': 'on'
-    }]
-}, {
-    'featureType': 'poi.business',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#1fba9c'
-    }]
-}, {
-    'featureType': 'poi.business',
-    'elementType': 'labels.icon',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}, {
-    'featureType': 'poi.park',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#02706a'
-    }]
-}, {
-    'featureType': 'transit',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#428290'
-    }]
-}, {
-    'featureType': 'road',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#316589'
-    }]
-}, {
-    'featureType': 'road',
-    'elementType': 'geometry.stroke',
-    'stylers': [{
-        'color': '#7f8b60'
-    }, {
-        'weight': '2'
-    }]
-}, {
-    'featureType': 'road.highway',
-    'elementType': 'labels.icon',
-    'stylers': [{
-        'visibility': 'off'
-    }]
-}, {
-    'featureType': 'water',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#1e4fbc'
-    }]
-}, {
-    'featureType': 'poi.attraction',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#1fba9c'
-    }]
-}, {
-    'featureType': 'poi.sports_complex',
-    'elementType': 'geometry.fill',
-    'stylers': [{
-        'color': '#1fba9c'
-    }]
-}]
-
-var pokemonSprites = {
-    columns: 28,
-    iconWidth: 80,
-    iconHeight: 80,
-    spriteWidth: 2240,
-    spriteHeight: 1440,
-    filename: 'static/icons-large-sprite.png',
-    name: 'High-Res'
+    return sprite
 }
 
 //
@@ -847,7 +63,7 @@ var StoreTypes = {
 // set the default parameters for you map here
 var StoreOptions = {
     'map_style': {
-        default: 'roadmap', // roadmap, satellite, hybrid, nolabels_style, dark_style, style_light2, style_pgo, dark_style_nl, style_pgo_day, style_pgo_night, style_pgo_dynamic
+        default: 'stylemapnik', // stylemapnik, styleblackandwhite, styletopo, stylesatellite, stylewikipedia
         type: StoreTypes.String
     },
     'remember_select_exclude': {
@@ -857,6 +73,10 @@ var StoreOptions = {
     'remember_select_notify': {
         default: [],
         type: StoreTypes.JSON
+    },
+    'prioNotify': {
+        default: false,
+        type: StoreTypes.Boolean
     },
     'remember_select_rarity_notify': {
         default: [], // Common, Uncommon, Rare, Very Rare, Ultra Rare
@@ -870,12 +90,12 @@ var StoreOptions = {
         default: '',
         type: StoreTypes.Number
     },
-	'excludedRarity': {
+    'excludedRarity': {
         default: 0, // 0: none, 1: <=Common, 2: <=Uncommon, 3: <=Rare, 4: <=Very Rare, 5: <=Ultra Rare
         type: StoreTypes.Number
     },
     'showRaids': {
-        default: false,
+        default: true,
         type: StoreTypes.Boolean
     },
     'showActiveRaidsOnly': {
@@ -922,12 +142,12 @@ var StoreOptions = {
         default: true,
         type: StoreTypes.Boolean
     },
-	'showPokemonStats': {
+    'showPokemonStats': {
         default: true,
         type: StoreTypes.Boolean
     },
     'showPokestops': {
-        default: true,
+        default: false,
         type: StoreTypes.Boolean
     },
     'showLuredPokestopsOnly': {
@@ -1077,7 +297,44 @@ var StoreOptions = {
     'isSearchMarkerMovable': {
         default: false,
         type: StoreTypes.Boolean
-    }		      
+    },
+    'hidepresets': {
+        default: [],
+        type: StoreTypes.JSON
+    },
+    'showMedalRattata': {
+        default: false,
+        type: StoreTypes.Boolean
+    },
+    'showMedalMagikarp': {
+        default: false,
+        type: StoreTypes.Boolean
+    },
+    'rarityCommon': {
+        default: 1,
+        type: StoreTypes.Number
+    },
+    'rarityUncommon': {
+        default: 1,
+        type: StoreTypes.Number
+    },
+    'rarityRare': {
+        default: 1,
+        type: StoreTypes.Number
+    },
+    'rarityVeryRare': {
+        default: 1,
+        type: StoreTypes.Number
+    },
+    'rarityUltraRare': {
+        default: 1,
+        type: StoreTypes.Number
+    },
+    'rarityNewSpawn': {
+        default: 1,
+        type: StoreTypes.Number
+    }
+
 }
 
 var Store = {
@@ -1124,22 +381,20 @@ var mapData = {
 function getPokemonIcon(item, sprite, displayHeight) {
     displayHeight = Math.max(displayHeight, 3)
     var scale = displayHeight / sprite.iconHeight
-    var scaledIconSize = new google.maps.Size(scale * sprite.iconWidth, scale * sprite.iconHeight)
-    var scaledIconOffset = new google.maps.Point(0, 0)
-    var scaledIconCenterOffset = new google.maps.Point(scale * sprite.iconWidth / 2, scale * sprite.iconHeight / 2)
+    var scaledIconSize = [scale * sprite.iconWidth, scale * sprite.iconHeigt]
+    var scaledIconOffset = [0, 0]
+    var scaledIconCenterOffset = [scale * sprite.iconWidth / 2, scale * sprite.iconHeight / 2]
 
-    let gender_param = item['gender'] ? `&gender=${item['gender']}` : ''
-    let form_param = item['form'] ? `&form=${item['form']}` : ''
-    let costume_param = item['costume'] ? `&costume=${item['costume']}` : ''
-    let weather_param = item['weather_boosted_condition'] ? `&weather=${item['weather_boosted_condition']}` : ''
-    let icon_url = `pkm_img?pkm=${item['pokemon_id']}${gender_param}${form_param}${costume_param}${weather_param}`
+    let genderParam = item['gender'] ? `&gender=${item['gender']}` : ''
+    let formParam = item['form'] ? `&form=${item['form']}` : ''
+    let costumeParam = item['costume'] ? `&costume=${item['costume']}` : ''
+    let weatherParam = item['weather_boosted_condition'] ? `&weather=${item['weather_boosted_condition']}` : ''
+    let iconUrl = `pkm_img?pkm=${item['pokemon_id']}${genderParam}${formParam}${costumeParam}${weatherParam}`
 
     return {
-        url: icon_url,
-        size: scaledIconSize,
-        scaledSize: scaledIconSize,
-        origin: scaledIconOffset,
-        anchor: scaledIconCenterOffset
+        iconUrl: iconUrl,
+        iconSize: scaledIconSize,
+        iconAnchor: scaledIconCenterOffset
     }
 }
 
@@ -1147,7 +402,7 @@ function getPokemonIcon(item, sprite, displayHeight) {
 var pokemonRarities = {}
 
 function updatePokemonRarities() {
-    $.getJSON('static/dist/data/rarity.json').done(function (data) {
+    $.getJSON('static/dist/data/' + rarityFileName + '.json').done(function (data) {
         pokemonRarities = data
     }).fail(function () {
         // Could be disabled/removed.
@@ -1160,37 +415,45 @@ function getPokemonRarity(pokemonId) {
         return i8ln(pokemonRarities[pokemonId])
     }
 
-    return ''
+    return i8ln('New Spawn')
+}
+
+function getPokemonRarityNoi8(pokemonId) {
+    if (pokemonRarities.hasOwnProperty(pokemonId)) {
+        return pokemonRarities[pokemonId]
+    }
+
+    return 'New Spawn'
 }
 
 function getGoogleSprite(index, sprite, displayHeight) {
     displayHeight = Math.max(displayHeight, 3)
     var scale = displayHeight / sprite.iconHeight
     // Crop icon just a tiny bit to avoid bleedover from neighbor
-    var scaledIconSize = new google.maps.Size(scale * sprite.iconWidth - 1, scale * sprite.iconHeight - 1)
-    var scaledIconOffset = new google.maps.Point(
+    var scaledIconSize = (scale * sprite.iconWidth - 1, scale * sprite.iconHeight - 1)
+    var scaledIconOffset = (
         (index % sprite.columns) * sprite.iconWidth * scale + 0.5,
         Math.floor(index / sprite.columns) * sprite.iconHeight * scale + 0.5)
-    var scaledSpriteSize = new google.maps.Size(scale * sprite.spriteWidth, scale * sprite.spriteHeight)
-    var scaledIconCenterOffset = new google.maps.Point(scale * sprite.iconWidth / 2, scale * sprite.iconHeight / 2)
+    var scaledSpriteSize = (scale * sprite.spriteWidth, scale * sprite.spriteHeight)
+    var scaledIconCenterOffset = (scale * sprite.iconWidth / 2, scale * sprite.iconHeight / 2)
 
     return {
-        url: sprite.filename,
-        size: scaledIconSize,
+        iconUrl: sprite.filename,
+        iconSize: scaledIconSize,
+        iconAnchor: scaledIconCenterOffset,
         scaledSize: scaledSpriteSize,
-        origin: scaledIconOffset,
-        anchor: scaledIconCenterOffset
+        origin: scaledIconOffset
     }
 }
 
 function setupPokemonMarkerDetails(item, map, scaleByRarity = true, isNotifyPkmn = false) {
     const pokemonIndex = item['pokemon_id'] - 1
-    const sprite = pokemonSprites
+    const sprite = pokemonSprites(pokemonIndex)
 
     var markerDetails = {
         sprite: sprite
     }
-    var iconSize = (map.getZoom() - 3) * (map.getZoom() - 3) * 0.2 + Store.get('iconSizeModifier')
+    var iconSize = (12) * (12) * 0.2 + Store.get('iconSizeModifier')
     rarityValue = 2
 
     if (Store.get('upscalePokemon')) {
@@ -1200,15 +463,15 @@ function setupPokemonMarkerDetails(item, map, scaleByRarity = true, isNotifyPkmn
 
     if (scaleByRarity) {
         const rarityValues = {
-            'very rare': 30,
-            'ultra rare': 40,
-            'legendary': 50
+            'new spawn': 20,
+            'very rare': 20,
+            'ultra rare': 25,
+            'legendary': 30
         }
 
         const pokemonRarity = getPokemonRarity(item['pokemon_id']).toLowerCase()
         if (rarityValues.hasOwnProperty(pokemonRarity)) {
-            rarityValue = rarityValues[pokemonRarity] 
-            
+            rarityValue = rarityValues[pokemonRarity]
         }
     }
 
@@ -1222,32 +485,28 @@ function setupPokemonMarkerDetails(item, map, scaleByRarity = true, isNotifyPkmn
     return markerDetails
 }
 
-function setupPokemonMarker(item, map, isBounceDisabled, scaleByRarity = true, isNotifyPkmn = false) {
-    // Scale icon size up with the map exponentially, also size with rarity.
-    const markerDetails = setupPokemonMarkerDetails(item, map, scaleByRarity, isNotifyPkmn)
-    const icon = markerDetails.icon
-
-    var marker = new google.maps.Marker({
-        position: {
-            lat: item['latitude'],
-            lng: item['longitude']
-        },
-        zIndex: 9949 + markerDetails.rarityValue,
-        icon: icon,
-        animationDisabled: isBounceDisabled
-    })
-
-    return marker
-}
-
 function updatePokemonMarker(item, map, scaleByRarity = true, isNotifyPkmn = false) {
     // Scale icon size up with the map exponentially, also size with rarity.
     const markerDetails = setupPokemonMarkerDetails(item, map, scaleByRarity, isNotifyPkmn)
-    const icon = markerDetails.icon
+    const icon = L.icon(markerDetails.icon)
     const marker = item.marker
 
     marker.setIcon(icon)
 }
+
+function setupPokemonMarker(item, map, isBounceDisabled, scaleByRarity = true, isNotifyPkmn = false) {
+    // Scale icon size up with the map exponentially, also size with rarity.
+    const markerDetails = setupPokemonMarkerDetails(item, map, scaleByRarity, isNotifyPkmn)
+    const icon = L.icon(markerDetails.icon)
+    var pokemonMarker
+    if (!isNotifyPkmn) {
+        pokemonMarker = L.marker([item['latitude'], item['longitude']], {icon: icon, zIndexOffset: 100 + markerDetails.rarityValue}).addTo(markers)
+    } else {
+        pokemonMarker = L.marker([item['latitude'], item['longitude']], {icon: icon, zIndexOffset: 1000 + markerDetails.rarityValue}).addTo(markersnotify)
+    }
+    return pokemonMarker
+}
+
 
 function updatePokemonLabel(item) {
     // Only update label when Pokémon has been encountered.
@@ -1274,44 +533,44 @@ function isMobileDevice() {
     return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent))
 }
 
-function cssPercentageCircle(text, value, perfect_val, good_val, ok_val, meh_val) {
+function cssPercentageCircle(text, value, perfectVal, goodVal, okVal, mehVal) {
     // Ring color
-    var ring_color
-    if (value == perfect_val) {
-        ring_color = 'lime'
-    } else if (value >= good_val) {
-        ring_color = 'green'
-    } else if (value >= ok_val) {
-        ring_color = 'olive'
-    } else if (value >= meh_val) {
-        ring_color = 'orange'
+    var ringColor
+    if (value === perfectVal) {
+        ringColor = 'lime'
+    } else if (value >= goodVal) {
+        ringColor = 'green'
+    } else if (value >= okVal) {
+        ringColor = 'olive'
+    } else if (value >= mehVal) {
+        ringColor = 'orange'
     } else {
-        ring_color = 'red'
+        ringColor = 'red'
     }
 
     // CSS styles
-    var percentage = value * 100 / perfect_val
+    var percentage = value * 100 / perfectVal
     var deg = 360 * percentage / 100
-    var circle_styles
+    var circleStyles
     if (deg <= 180) {
-        circle_styles = `background-color: ${ring_color};
-            background-image: linear-gradient(${90+deg}deg, transparent 50%, Gainsboro 50%),
+        circleStyles = `background-color: ${ringColor};
+            background-image: linear-gradient(${90 + deg}deg, transparent 50%, Gainsboro 50%),
                               linear-gradient(90deg, Gainsboro 50%, transparent 50%)');`
     } else {
-        circle_styles = `background-color: ${ring_color};
-            background-image: linear-gradient(${deg-90}deg, transparent 50%, ${ring_color} 50%),
+        circleStyles = `background-color: ${ringColor};
+            background-image: linear-gradient(${deg - 90}deg, transparent 50%, ${ringColor} 50%),
                               linear-gradient(90deg, Gainsboro 50%, transparent 50%)');`
     }
 
     // HTML output
-    return `<div class="active-border" style='${circle_styles}'>
+    return `<div class="active-border" style='${circleStyles}'>
                 <div class="circle">
                     <span class="prec" id="prec">${text}</span>
                 </div>
             </div>`
 }
 
-function get_pokemon_raw_icon_url(p) {
+function getPokemonRawIconUrl(p) {
     if (!generateImages) {
         return `static/icons/${p.pokemon_id}.png`
     }

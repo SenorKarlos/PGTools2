@@ -1,4 +1,4 @@
-  
+   
 # RocketMap
 
 ![Python 2.7](https://img.shields.io/badge/python-2.7-blue.svg) ![License](https://img.shields.io/github/license/RocketMap/RocketMap.svg) [![Build Status](https://travis-ci.org/RocketMap/RocketMap.svg?branch=develop)](https://travis-ci.org/RocketMap/RocketMap)
@@ -20,10 +20,7 @@ Live visualization of all the Pok√©mon (with option to show gyms, raids and Pok√
 * Incredibly fast, efficient searching algorithm (compared to everything else available)
 
 ## Information
-* [Discord](https://discord.gg/rocketmap) for general support
-* [Documentation](https://rocketmap.readthedocs.io/) for installation and usage docs
-* [vote.devkat.org](http://vote.devkat.org) to request new features
-* [Github Issues](https://github.com/RocketMap/RocketMap/issues) for reporting bugs (not for support!)
+* [Github Issues](https://github.com/SenorKarlos/RocketMap/issues) for reporting bugs (not for support!)
 
 ## Installation
 
